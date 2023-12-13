@@ -1,7 +1,8 @@
-package src;
+package models;
 
-import src.exceptions.*;
+import exceptions.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -36,6 +37,9 @@ public class Controller {
     }
 
     public <T, R> R invoke(String actionName, T actionParam) throws NotEnoughMemory {  //"public <T, R> R ..." fa mètode genèric
+        if(actionParam instanceof List<?>) {    //si ens passen una llista de parametres
+
+        }
         Invoker selectedInv = selectInvoker(actions.get(actionName).getActionSizeMB());
         return (R) selectedInv.runFunction(actions.get(actionName), actionParam);
     }
@@ -46,7 +50,7 @@ public class Controller {
             i++;        //busquem un Invoker amb prou memòria per executar la funcio
         }
         if(i >= nInvokers)
-            throw new NotEnoughMemory("La tens molt gran");
+            throw new NotEnoughMemory("La funció que vols executar no pot ser executada per cap Invoker degut a la seva gran mida.");
         return invokers[i];
     }
 }

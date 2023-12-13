@@ -1,8 +1,7 @@
-package src;
 import java.util.Map;
 import java.util.function.Function;
-
-import src.exceptions.NotEnoughMemory;
+import exceptions.NotEnoughMemory;
+import models.Controller;
 
 public class Main {
     public static void main(String[] args) throws NotEnoughMemory {

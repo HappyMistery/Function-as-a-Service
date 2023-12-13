@@ -1,4 +1,4 @@
-package src;
+package models;
 import java.util.function.Function;
 
 public class Action<T, R> {
