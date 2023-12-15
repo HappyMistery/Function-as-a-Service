@@ -2,7 +2,6 @@ package models;
 
 import exceptions.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,14 +75,12 @@ public class Controller {
     }
 
     /* 
-    public <T, R> ResultFuture<R> invoke_async(String actionName, T actionParam) throws NotEnoughMemory {
+    public <T, R> ResultFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
         ResultFuture<R> resultFuture = new ResultFuture<>();
         executorService.submit(() -> {
             semafor.acquire();
-            Invoker selectedInv = selectInvoker(action, actionParam)[0];    //seleccionem l'Invoker que executarà la funcio
-            R res = (R) selectedInv.runFunction(action, actionParam);
-            selectedInv.setAvailableMem(action.getActionSizeMB()); //tornem mem a l'Invoker
+            R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
             resultFuture.setResult(res);
             semafor.release();
         });
@@ -92,28 +89,7 @@ public class Controller {
         return resultFuture;
             
     }
-    */
-
-
-    /*
-    if(actionParam instanceof List<?>) {    //si ens passen una llista de parametres
-            List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
-            int j = 0;
-            Invoker[] selectedInvokers = selectInvoker(action, actionParam);    //seleccionem els Invokers que executaran les funcions
-            for(int i = 0; i < selectedInvokers.length; i++) {
-                executorService.submit(() -> {
-                    semafor.acquire();
-                    while(selectedInvokers[i].getAvailableMem() >= action.getActionSizeMB() && j < ((List<?>) actionParam).size()) {
-                        R res = (R) selectedInvokers[i].runFunction(action, ((List<?>) actionParam).get(j));
-                        j++;
-                        resultFuture.setResult(res);
-                    }
-                    selectedInvokers[i].setAvailableMem(action.getActionSizeMB()); //tornem mem a l'Invoker
-                    semafor.release();
-                });
-            }
-        }
-     */
+    //*/
 
     /**
      * @param <T>
