@@ -20,7 +20,6 @@ public class Invoker {
         availableMem -= action.getActionSizeMB();   //treiem mem disponible de l'Invoker
         Function<T, R> function = (Function<T, R>) action.getFunction();    //obtenim la funcio a invocar
         R result = function.apply(funcParam);  //passem els parametres a la funcio a invocar
-        availableMem += action.getActionSizeMB();   //tornem mem a l'Invoker
         return result;
     }
 }

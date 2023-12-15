@@ -65,6 +65,8 @@ public class Tests {
             }}
         );
         List<Integer> result = controller.invoke("addAction", input);
-        System.out.println(result.toString());
+        assertEquals(5, result.get(0));
+        assertEquals(10, result.get(1));
+        assertEquals(16, result.get(2));
     }
 }

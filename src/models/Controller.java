@@ -1,6 +1,8 @@
 package models;
 
 import exceptions.*;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,10 +40,40 @@ public class Controller {
 
     public <T, R> R invoke(String actionName, T actionParam) throws NotEnoughMemory {  //"public <T, R> R ..." fa mètode genèric
         if(actionParam instanceof List<?>) {    //si ens passen una llista de parametres
+            float totalMemGroup = actions.get(actionName).getActionSizeMB() * ((List<?>) actionParam).size();
+            float foundMem = 0;
+            List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
+            for(int i = 0; i < nInvokers; i++) {
+                if(invokers[i].getAvailableMem() < actions.get(actionName).getActionSizeMB()) {
+                    continue;
+                }
+                else {
+                    foundMem += invokers[i].getAvailableMem();
+                }
+            }
 
+            if(foundMem < totalMemGroup) throw new NotEnoughMemory("Les funcions que vols executar no poden ser executades al complet.");
+
+            int j = 0;
+            for(int i = 0; i < nInvokers; i++) {
+                if(invokers[i].getAvailableMem() < actions.get(actionName).getActionSizeMB()) {
+                    continue;
+                }
+                else {
+                    while(invokers[i].getAvailableMem() >= actions.get(actionName).getActionSizeMB() && j < ((List<?>) actionParam).size()) {
+                        R res = (R) invokers[i].runFunction(actions.get(actionName), ((List<?>) actionParam).get(j));
+                        j++;
+                        resFinal.add(res);
+                    }
+                    invokers[i].setAvailableMem(actions.get(actionName).getActionSizeMB()); //tornem mem a l'Invoker
+                }
+            }
+            return (R) resFinal;
         }
         Invoker selectedInv = selectInvoker(actions.get(actionName).getActionSizeMB());
-        return (R) selectedInv.runFunction(actions.get(actionName), actionParam);
+        R res = (R) selectedInv.runFunction(actions.get(actionName), actionParam);
+        selectedInv.setAvailableMem(actions.get(actionName).getActionSizeMB()); //tornem mem a l'Invoker
+        return res;
     }
 
     public Invoker selectInvoker(float funcMem) throws NotEnoughMemory{
