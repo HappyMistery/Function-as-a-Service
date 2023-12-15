@@ -7,8 +7,6 @@ import exceptions.NotEnoughMemory;
 import exceptions.PolicyNotDetected;
 import models.Controller;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,12 +15,12 @@ import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class Tests {
+public class InvokersTests {
 
     Controller controller = new Controller(4, 1024);
 
     @BeforeEach
-    public void setUp() throws FileNotFoundException, IOException {
+    public void setUp() {
         Function<Map<String, Integer>, Integer> f;
         f = x -> x.get("x") + x.get("y");
         controller.registerAction("addAction", f, 256);
@@ -46,10 +44,10 @@ public class Tests {
         res = (int) controller.invoke("subAction", Map.of("x", 6, "y", 2), 2);
         assertEquals(4, res);
 
-        res = (int) controller.invoke("multAction", Map.of("x", 6, "y", 2), 1);
+        res = (int) controller.invoke("multAction", Map.of("x", 6, "y", 2), 3);
         assertEquals(12, res);
 
-        res = (int) controller.invoke("divAction", Map.of("x", 6, "y", 2), 2);
+        res = (int) controller.invoke("divAction", Map.of("x", 6, "y", 2), 4);
         assertEquals(3, res);
     }
 
@@ -164,53 +162,4 @@ public class Tests {
         assertEquals(2, res.get(3));
 
     }
-
-    @Test
-    public void roundRobin() throws NotEnoughMemory, PolicyNotDetected {
-        List<Map<String, Integer>> input = Arrays.asList(
-                new HashMap<String, Integer>() {
-                    {
-                        put("x", 2);
-                        put("y", 3);
-                    }
-                },
-                new HashMap<String, Integer>() {
-                    {
-                        put("x", 9);
-                        put("y", 1);
-                    }
-                },
-                new HashMap<String, Integer>() {
-                    {
-                        put("x", 5);
-                        put("y", 5);
-                    }
-                },
-                new HashMap<String, Integer>() {
-                    {
-                        put("x", 6);
-                        put("y", 2);
-                    }
-                },
-                new HashMap<String, Integer>() {
-                    {
-                        put("x", 9);
-                        put("y", 3);
-                    }
-                });
-        List<Integer> result = controller.invoke("add/2Action", input, 1);
-
-        assertEquals(2, result.get(0));
-        assertEquals(5, result.get(1));
-        assertEquals(5, result.get(2));
-        assertEquals(4, result.get(3));
-        assertEquals(6, result.get(4));
-
-        // funcions s'han repartit uniformement entre els 4 invokers
-        assertEquals(2, controller.getInvokers()[0].getExecFuncs());
-        assertEquals(1, controller.getInvokers()[1].getExecFuncs());
-        assertEquals(1, controller.getInvokers()[2].getExecFuncs());
-        assertEquals(1, controller.getInvokers()[3].getExecFuncs());
-    }
-
 }
