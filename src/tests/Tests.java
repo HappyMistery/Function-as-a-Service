@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import exceptions.NotEnoughMemory;
+import exceptions.PolicyNotDetected;
 import models.Controller;
 
 import java.io.FileNotFoundException;
@@ -38,29 +39,29 @@ public class Tests {
     }
     
     @Test
-    public void test_FuncSolo() throws NotEnoughMemory {
-        int res = (int) controller.invoke("addAction", Map.of("x", 6, "y", 2));
+    public void test_FuncSolo() throws NotEnoughMemory, PolicyNotDetected {
+        int res = (int) controller.invoke("addAction", Map.of("x", 6, "y", 2), 2);
         assertEquals(8, res);
 
-        res = (int) controller.invoke("subAction", Map.of("x", 6, "y", 2));
+        res = (int) controller.invoke("subAction", Map.of("x", 6, "y", 2), 2);
         assertEquals(4, res);
 
-        res = (int) controller.invoke("multAction", Map.of("x", 6, "y", 2));
+        res = (int) controller.invoke("multAction", Map.of("x", 6, "y", 2), 2);
         assertEquals(12, res);
 
-        res = (int) controller.invoke("divAction", Map.of("x", 6, "y", 2));
+        res = (int) controller.invoke("divAction", Map.of("x", 6, "y", 2), 2);
         assertEquals(3, res);
     }
 
     @Test
-    public void test_ThrowsNEMSolo() throws NotEnoughMemory {
+    public void test_ThrowsNEMSolo() throws NotEnoughMemory, PolicyNotDetected {
         assertThrows(NotEnoughMemory.class, () -> {
-            int res = (int) controller.invoke("addX2Action", Map.of("x", 6, "y", 2));
+            int res = (int) controller.invoke("addX2Action", Map.of("x", 6, "y", 2), 2);
         });
     }
 
     @Test
-    public void test_FuncGroup() throws NotEnoughMemory {
+    public void test_FuncGroup() throws NotEnoughMemory, PolicyNotDetected {
         List<Map<String, Integer>> input = Arrays.asList(
             new HashMap<String, Integer>() {{
                 put("x", 2);
@@ -75,7 +76,7 @@ public class Tests {
                 put("y", 8);
             }}
         );
-        List<Integer> result = controller.invoke("addAction", input);
+        List<Integer> result = controller.invoke("addAction", input, 2);
 
         assertEquals(5, result.get(0));
         assertEquals(10, result.get(1));
@@ -83,7 +84,7 @@ public class Tests {
     }
 
     @Test
-    public void test_ThrowsNEMGroup() throws NotEnoughMemory {
+    public void test_ThrowsNEMGroup() throws NotEnoughMemory, PolicyNotDetected {
         List<Map<String, Integer>> input = Arrays.asList(
             new HashMap<String, Integer>() {{
                 put("x", 2);
@@ -107,12 +108,12 @@ public class Tests {
             }}
         );
         assertThrows(NotEnoughMemory.class, () -> {
-            List<Integer> res = controller.invoke("addAction", input);  //4 invokers no tenen prou mem
+            List<Integer> res = controller.invoke("addAction", input, 2);  //4 invokers no tenen prou mem
         });
     }
 
     @Test
-    public void test_1InvokerExecsGroup() throws NotEnoughMemory {
+    public void test_1InvokerExecsGroup() throws NotEnoughMemory, PolicyNotDetected {
         Controller controller2 = new Controller(1, 1024);
         Function<Map<String, Integer>, Integer> f = x -> x.get("x") + x.get("y");
         controller2.registerAction("addAction", f, 256);
@@ -135,7 +136,7 @@ public class Tests {
                 put("y", 1);
             }}
         );
-        List<Integer> res = controller2.invoke("addAction", input);  //1 invoker fa 5 execs
+        List<Integer> res = controller2.invoke("addAction", input, 2);  //1 invoker fa 5 execs
         assertEquals(5, res.get(0));
         assertEquals(10, res.get(1));
         assertEquals(27, res.get(2));

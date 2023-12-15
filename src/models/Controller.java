@@ -41,6 +41,10 @@ public class Controller {
         return nInvokers;
     }
 
+    public Invoker[] getInvokers() {
+        return invokers;
+    }
+
     public int getTotalSizeMB() {
         return totalSizeMB;
     }
@@ -66,27 +70,9 @@ public class Controller {
      * @return
      * @throws NotEnoughMemory
      */
-    public <T, R> R invoke(String actionName, T actionParam) throws NotEnoughMemory {  //"public <T, R> R ..." fa mètode genèric
+    public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {  //"public <T, R> R ..." fa mètode genèric
         Action action = actions.get(actionName);    //obtenim la accio a executar
-        if(actionParam instanceof List<?>) {    //si ens passen una llista de parametres
-            List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
-            int j = 0;
-            Invoker[] selectedInvokers = selectInvoker(action, actionParam);    //seleccionem els Invokers que executaran les funcions
-            for(int i = 0; i < selectedInvokers.length; i++) {
-                while(selectedInvokers[i].getAvailableMem() >= action.getActionSizeMB() && j < ((List<?>) actionParam).size()) {
-                    R res = (R) selectedInvokers[i].runFunction(action, ((List<?>) actionParam).get(j));
-                    j++;
-                    resFinal.add(res);
-                }
-                selectedInvokers[i].setAvailableMem(action.getActionSizeMB()); //tornem mem a l'Invoker
-            }
-            return (R) resFinal;
-        }
-
-        Invoker selectedInv = selectInvoker(action, actionParam)[0];    //seleccionem l'Invoker que executarà la funcio
-        R res = (R) selectedInv.runFunction(action, actionParam);
-        selectedInv.setAvailableMem(action.getActionSizeMB()); //tornem mem a l'Invoker
-        return res;
+        return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
     }
 
     /* 
