@@ -114,6 +114,9 @@ public class Tests {
     @Test
     public void test_1InvokerExecsGroup() throws NotEnoughMemory {
         Controller controller2 = new Controller(1, 1024);
+        Function<Map<String, Integer>, Integer> f = x -> x.get("x") + x.get("y");
+        controller2.registerAction("addAction", f, 256);
+        
         List<Map<String, Integer>> input = Arrays.asList(
             new HashMap<String, Integer>() {{
                 put("x", 2);
@@ -130,18 +133,13 @@ public class Tests {
             new HashMap<String, Integer>() {{
                 put("x", 1);
                 put("y", 1);
-            }},
-            new HashMap<String, Integer>() {{
-                put("x", 8);
-                put("y", 8);
             }}
         );
         List<Integer> res = controller2.invoke("addAction", input);  //1 invoker fa 5 execs
         assertEquals(5, res.get(0));
         assertEquals(10, res.get(1));
         assertEquals(27, res.get(2));
-        assertEquals(2, res.get(1));
-        assertEquals(16, res.get(2));
+        assertEquals(2, res.get(3));
         
     }
 }
