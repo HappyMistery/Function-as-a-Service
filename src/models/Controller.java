@@ -3,7 +3,6 @@ package models;
 import exceptions.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.concurrent.*;
@@ -30,7 +29,7 @@ public class Controller {
             invokers[i] = new Invoker(totalSizeMB/nInvokers);   //Inicialitzem cada Invoker de l'array
         }
         executorService = java.util.concurrent.Executors.newFixedThreadPool(nInvokers);
-        semafor = new Semaphore(totalSizeMB);
+        semafor = new Semaphore(nInvokers);
     }
 
 
@@ -44,6 +43,14 @@ public class Controller {
 
     public int getTotalSizeMB() {
         return totalSizeMB;
+    }
+
+    public Semaphore getSemafor() {
+        return semafor;
+    }
+
+    public ExecutorService getES() {
+        return executorService;
     }
 
     /**
@@ -66,10 +73,11 @@ public class Controller {
      * @param actionParam
      * @return
      * @throws NotEnoughMemory
+     * @throws InterruptedException
      */
-    public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {  //"public <T, R> R ..." fa mètode genèric
+    public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected, InterruptedException {  //"public <T, R> R ..." fa mètode genèric
         Action action = actions.get(actionName);    //obtenim la accio a executar
-        return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
+        return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, false);
     }
 
     //* 
@@ -78,65 +86,17 @@ public class Controller {
         CompletableFuture<R> resultFuture = new CompletableFuture<>();
         executorService.submit(() -> {
             try{
-            semafor.acquire();
-            R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
+            //semafor.acquire();
+            R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, true);
             resultFuture.complete(res);
-            semafor.release();
+            //semafor.release();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-        executorService.shutdown();
 
         return resultFuture;
             
     }
     //*/
-
-    /**
-     * @param <T>
-     * @param <R>
-     * @param action
-     * @param actionParam
-     * @return
-     * @throws NotEnoughMemory
-     */
-    public <T, R> Invoker[] selectInvoker(Action action, T actionParam) throws NotEnoughMemory{
-        int i = 0;
-        Invoker[] invs = new Invoker[nInvokers];
-        if(actionParam instanceof List<?>) {    //si ens passen una llista de parametres
-            float totalMemGroup = action.getActionSizeMB() * ((List<?>) actionParam).size();
-            float foundMem = 0;
-            for(i = 0; i < nInvokers; i++) {
-                if(invokers[i].getAvailableMem() < action.getActionSizeMB()) {
-                    continue;   //si l'Invoker no té prou mem per executar la funcio al menys 1 cop, passem al següent
-                }
-                else {
-                    foundMem += invokers[i].getAvailableMem();
-                }
-            }
-
-            if(foundMem < totalMemGroup) throw new NotEnoughMemory("Les funcions que vols executar no poden ser executades al complet.");
-
-            int j = 0;
-            for(i = 0; i < nInvokers; i++) {
-                if(invokers[i].getAvailableMem() < action.getActionSizeMB()) {
-                    continue;
-                }
-                else {
-                    invs[j] = invokers[i];
-                    j++;
-                }
-            }
-            return invs;
-        }
-
-        while((i < nInvokers) && (invokers[i].getAvailableMem() < action.getActionSizeMB())) {
-            i++;        //busquem un Invoker amb prou memòria per executar la funcio
-        }
-        if(i >= nInvokers)
-            throw new NotEnoughMemory("La funció que vols executar no pot ser executada per cap Invoker degut a la seva gran mida.");
-        invs[0] = invokers[i];  //guardem l'Invoker que executarà la funcio
-        return invs;
-    }
 }

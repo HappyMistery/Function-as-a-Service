@@ -39,7 +39,7 @@ public class PolicyManagerTests {
     }
 
     @Test
-    public void testRoundRobin() throws NotEnoughMemory, PolicyNotDetected {
+    public void testRoundRobin() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         List<Map<String, Integer>> input = Arrays.asList(
                 new HashMap<String, Integer>() {
                     {
@@ -91,7 +91,7 @@ public class PolicyManagerTests {
     }
 
     @Test
-    public void testGreedyGroup() throws NotEnoughMemory, PolicyNotDetected {
+    public void testGreedyGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         List<Map<String, Integer>> input = Arrays.asList(
                 new HashMap<String, Integer>() {
                     {
@@ -143,7 +143,7 @@ public class PolicyManagerTests {
     }
 
     @Test
-    public void testUniformGroup() throws NotEnoughMemory, PolicyNotDetected {
+    public void testUniformGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         List<Map<String, Integer>> input = Arrays.asList(
                 new HashMap<String, Integer>() {
                     {
@@ -216,7 +216,7 @@ public class PolicyManagerTests {
     }
 
     @Test
-    public void testBigGroup() throws NotEnoughMemory, PolicyNotDetected {
+    public void testBigGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         Controller controller2 = new Controller(4, 2048);
         Function<Map<String, Integer>, Integer> f = x -> (x.get("x") + x.get("y")) / 2;
         controller2.registerAction("add/2Action", f, 64);

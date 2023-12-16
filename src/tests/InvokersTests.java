@@ -1,5 +1,6 @@
 package tests;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -7,12 +8,12 @@ import exceptions.NotEnoughMemory;
 import exceptions.PolicyNotDetected;
 import models.Controller;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,14 +26,14 @@ public class InvokersTests {
     public void setUp() {
         Function<Integer, String> sleep = s -> {
             try {
-            Thread.sleep(Duration.ofSeconds(s));
+            Thread.sleep(5000);
             return "Done!";
             } catch (InterruptedException e) {
             throw new RuntimeException(e);
             }
             };
-        controller.registerAction("sleepAction", sleep);
-            
+        controller.registerAction("sleepAction", sleep, 10);
+
         Function<Map<String, Integer>, Integer> f;
         f = x -> x.get("x") + x.get("y");
         controller.registerAction("addAction", f, 256);
@@ -49,7 +50,7 @@ public class InvokersTests {
     }
 
     @Test
-    public void funcSolo() throws NotEnoughMemory, PolicyNotDetected {
+    public void funcSolo() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         int res = (int) controller.invoke("addAction", Map.of("x", 6, "y", 2), 1);
         assertEquals(8, res);
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
@@ -75,7 +76,7 @@ public class InvokersTests {
     }
 
     @Test
-    public void funcGroup() throws NotEnoughMemory, PolicyNotDetected {
+    public void funcGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         List<Map<String, Integer>> input = Arrays.asList(
                 new HashMap<String, Integer>() {
                     {
@@ -144,7 +145,7 @@ public class InvokersTests {
     }
 
     @Test
-    public void OneInvokerExecsGroup() throws NotEnoughMemory, PolicyNotDetected {
+    public void OneInvokerExecsGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         Controller controller2 = new Controller(1, 1024);
         Function<Map<String, Integer>, Integer> f = x -> x.get("x") + x.get("y");
         controller2.registerAction("addAction", f, 256);
@@ -187,23 +188,22 @@ public class InvokersTests {
 
 
      @Test
-    public void funcSoloAsync() throws NotEnoughMemory, PolicyNotDetected {
-
+    public void funcSoloAsync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
 
         CompletableFuture res = controller.invoke_async("addAction", Map.of("x", 6, "y", 2), 1);
-        assertEquals(8, res);
+        assertEquals(8, res.get());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
+        
+        res = controller.invoke_async("subAction", Map.of("x", 6, "y", 2), 2);
+        assertEquals(4, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
 
-        res = controller.invoke("subAction", Map.of("x", 6, "y", 2), 2);
-        assertEquals(4, res);
+        res = controller.invoke_async("multAction", Map.of("x", 6, "y", 2), 3);
+        assertEquals(12, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
 
-        res = controller.invoke("multAction", Map.of("x", 6, "y", 2), 3);
-        assertEquals(12, res);
-        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
-
-        res = controller.invoke("divAction", Map.of("x", 6, "y", 2), 4);
-        assertEquals(3, res);
+        res = controller.invoke_async("divAction", Map.of("x", 6, "y", 2), 4);
+        assertEquals(3, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
     }
 }
