@@ -20,8 +20,8 @@ public class Invoker {
         return availableMem;
     }
 
-    public void setAvailableMem(float mem) {
-        availableMem = mem;
+    public void returnMem(float mem) {
+        availableMem += mem;
     }
 
     public <T, R> R runFunction(Action<T, R> action, T funcParam) {

@@ -40,15 +40,19 @@ public class InvokersTests {
     public void funcSolo() throws NotEnoughMemory, PolicyNotDetected {
         int res = (int) controller.invoke("addAction", Map.of("x", 6, "y", 2), 1);
         assertEquals(8, res);
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
 
         res = (int) controller.invoke("subAction", Map.of("x", 6, "y", 2), 2);
         assertEquals(4, res);
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
 
         res = (int) controller.invoke("multAction", Map.of("x", 6, "y", 2), 3);
         assertEquals(12, res);
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
 
         res = (int) controller.invoke("divAction", Map.of("x", 6, "y", 2), 4);
         assertEquals(3, res);
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
     }
 
     @Test
@@ -79,11 +83,14 @@ public class InvokersTests {
                         put("y", 8);
                     }
                 });
-        List<Integer> result = controller.invoke("addAction", input, 2);
+        List<Integer> result = controller.invoke("addAction", input, 1);
 
         assertEquals(5, result.get(0));
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
         assertEquals(10, result.get(1));
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
         assertEquals(16, result.get(2));
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
     }
 
     @Test
@@ -155,11 +162,15 @@ public class InvokersTests {
                         put("y", 1);
                     }
                 });
-        List<Integer> res = controller2.invoke("addAction", input, 2); // 1 invoker fa 4 execs
+        List<Integer> res = controller2.invoke("addAction", input, 1); // 1 invoker fa 4 execs
         assertEquals(5, res.get(0));
+        assertEquals(controller2.getTotalSizeMB()/controller2.getNInvokers(), controller2.getInvokers()[0].getAvailableMem());
         assertEquals(10, res.get(1));
+        assertEquals(controller2.getTotalSizeMB()/controller2.getNInvokers(), controller2.getInvokers()[0].getAvailableMem());
         assertEquals(27, res.get(2));
+        assertEquals(controller2.getTotalSizeMB()/controller2.getNInvokers(), controller2.getInvokers()[0].getAvailableMem());
         assertEquals(2, res.get(3));
+        assertEquals(controller2.getTotalSizeMB()/controller2.getNInvokers(), controller2.getInvokers()[0].getAvailableMem());
 
     }
 }
