@@ -24,16 +24,6 @@ public class InvokersTests {
 
     @BeforeEach
     public void setUp() {
-        Function<Integer, String> sleep = s -> {
-            try {
-            Thread.sleep(5000);
-            return "Done!";
-            } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-            }
-            };
-        controller.registerAction("sleepAction", sleep, 10);
-
         Function<Map<String, Integer>, Integer> f;
         f = x -> x.get("x") + x.get("y");
         controller.registerAction("addAction", f, 256);
@@ -205,5 +195,34 @@ public class InvokersTests {
         res = controller.invoke_async("divAction", Map.of("x", 6, "y", 2), 4);
         assertEquals(3, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
+    }
+
+    @Test
+    public void funcGroupAsync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
+        List<Map<String, Integer>> input = Arrays.asList(
+                new HashMap<String, Integer>() {
+                    {
+                        put("x", 2);
+                        put("y", 3);
+                    }
+                },
+                new HashMap<String, Integer>() {
+                    {
+                        put("x", 9);
+                        put("y", 1);
+                    }
+                },
+                new HashMap<String, Integer>() {
+                    {
+                        put("x", 8);
+                        put("y", 8);
+                    }
+                });
+        CompletableFuture result = controller.invoke_async("addAction", input, 1);
+
+        assertEquals(Arrays.asList(5, 10, 16), result.get());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
     }
 }
