@@ -2,7 +2,6 @@ package tests;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
 
 import exceptions.NotEnoughMemory;
 import exceptions.PolicyNotDetected;
@@ -11,12 +10,14 @@ import models.Controller;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.List;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class MultiThreadingTests {
 
-    Controller controller = new Controller(4, 1024);
+    Controller controller = new Controller(5, 1024);
 
     @BeforeEach
     public void setUp() {
@@ -47,7 +48,7 @@ public class MultiThreadingTests {
     }
 
     @Test
-    public void SleepAsync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
+    public void SleepAsyncSolo() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         long startTime = System.currentTimeMillis();
 
         CompletableFuture res1 = controller.invoke_async("sleepAction", 5, 1);
@@ -59,5 +60,24 @@ public class MultiThreadingTests {
 
         long endTime = System.currentTimeMillis();
         assertEquals(5, (endTime - startTime) / 1000);
+    }
+
+    @Test
+    public void SleepAsyncGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
+        List<Integer> segons = Arrays.asList(3, 3, 3, 3, 3);
+        CompletableFuture res1, res2, res3, res4;
+        long startTime = System.currentTimeMillis();
+
+        res1 = controller.invoke_async("sleepAction", segons, 1);
+        res2 = controller.invoke_async("sleepAction", segons, 2);
+        res3 = controller.invoke_async("sleepAction", segons, 3);
+        res4 = controller.invoke_async("sleepAction", segons, 4);
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res1.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res2.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res3.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res4.get());
+
+        long endTime = System.currentTimeMillis();
+        assertEquals(15, (endTime - startTime) / 1000);
     }
 }
