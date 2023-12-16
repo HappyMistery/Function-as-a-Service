@@ -6,9 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
-
+import java.util.concurrent.*;
 
 
 public class Controller {
@@ -74,15 +72,19 @@ public class Controller {
         return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
     }
 
-    /* 
-    public <T, R> ResultFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
+    //* 
+    public <T, R> CompletableFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
-        ResultFuture<R> resultFuture = new ResultFuture<>();
+        CompletableFuture<R> resultFuture = new CompletableFuture<>();
         executorService.submit(() -> {
+            try{
             semafor.acquire();
             R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
-            resultFuture.setResult(res);
+            resultFuture.complete(res);
             semafor.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
         executorService.shutdown();
 
