@@ -17,7 +17,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
+@TestInstance(Lifecycle.PER_CLASS)
 public class InvokersTests {
 
     Controller controller = new Controller(4, 1024);
@@ -37,6 +40,11 @@ public class InvokersTests {
         controller.registerAction("addX2Action", f, 1024);
         f = x -> (x.get("x") + x.get("y")) / 2;
         controller.registerAction("add/2Action", f, 64);
+    }
+
+    @AfterAll
+    public void closing() {
+        controller.getES().shutdown();
     }
 
     @Test
@@ -218,7 +226,7 @@ public class InvokersTests {
                         put("y", 8);
                     }
                 });
-        CompletableFuture result = controller.invoke_async("addAction", input, 1);
+        CompletableFuture result = controller.invoke_async("addAction", input, 2);
 
         assertEquals(Arrays.asList(5, 10, 16), result.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());

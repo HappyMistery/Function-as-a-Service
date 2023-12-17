@@ -46,42 +46,30 @@ public class PolicyManager {
      * @throws InterruptedException
      */
     public static <T, R> R RoundRobin(Controller cont, Action action, T actionParam, boolean isAsync) throws NotEnoughMemory, InterruptedException {
-        Invoker[] invs = new Invoker[cont.getNInvokers()];
-        int j = 0;
-
         if (actionParam instanceof List<?>) { // si ens passen una llista de parametres
+            Invoker[] invs = new Invoker[cont.getNInvokers()];
             invs = checkForMemory(cont, action, actionParam, 0, 1, 1, isAsync); // comprovem que hi ha prou memoria per executar el grup de funcions
             int i = 0;
-
-            int[] invExecfunctions = new int[cont.getNInvokers()];
-            for (i = 0; i < invExecfunctions.length; i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                invExecfunctions[i] = cont.getInvokers()[i].getExecFuncs();  // guardem el nombre de funcions executades per cada Invoker
-                if(isAsync) cont.getSemafor().release();
-            }
             
             // RoundRobin Policy - Distribueix uniformement les funcions entre els Invokers
             List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
-
+            int j = 0;
             for (i = 0; i < ((List<?>) actionParam).size(); i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                if (invs[j].getAvailableMem() < action.getActionSizeMB()) {
-                    continue;
-                } else
+                if(isAsync && !cont.getInvokers()[j].getSem().tryAcquire()) System.out.println("RR Semàfor d'invoker " + j + " ple");
+                else
+                    if(isAsync) System.out.println("RR Bloquejo semàfor d'invoker " + j);
+                
+                if (invs[j].getAvailableMem() >= action.getActionSizeMB())
                     resFinal.add((R) invs[j].runFunction(action, ((List<?>) actionParam).get(i)));    // afegim el resultat de la funcio a la llista de resultats
+                if(isAsync) invs[j].getSem().release();
+                if(isAsync) System.out.println("RR Llibero semàfor d'invoker " + j);
+
                 if (j == invs.length - 1) {
                     j = 0; // si hem arribat al final de la llista de Invokers, tornem a començar
                     invs = checkForMemory(cont, action, actionParam, i + 1, 1, 1, isAsync); // comprovem que hi ha prou memoria per executar el grup de funcions
                 } else {
                     j++;
                 }
-                if(isAsync) cont.getSemafor().release();
-            }
-
-            for (i = 0; i < cont.getNInvokers(); i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                cont.getInvokers()[i].returnMem(action.getActionSizeMB() * (cont.getInvokers()[i].getExecFuncs() - invExecfunctions[i])); // tornem mem a l'Invoker
-                if(isAsync) cont.getSemafor().release();
             }
             return (R) resFinal;
         }
@@ -99,25 +87,21 @@ public class PolicyManager {
      * @throws InterruptedException
      */
     public static <T, R> R GreedyGroup(Controller cont, Action action, T actionParam, boolean isAsync) throws NotEnoughMemory, InterruptedException {
-        int i = 0;
-        int count = 0;
-        Invoker[] invs = new Invoker[cont.getNInvokers()];
         if (actionParam instanceof List<?>) { // si ens passen una llista de parametres
+            Invoker[] invs = new Invoker[cont.getNInvokers()];
             invs = checkForMemory(cont, action, actionParam, 0, 1, 2, isAsync); // comprovem que hi ha prou memoria per executar el grup de funcions
+            int i = 0;
 
             // GreedyGroup Policy - Omple tant com pot un invoker abans de passar al següent
             List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
             int j = 0;
             for (i = 0; i < invs.length; i++) {
-                count = 0;
-                if(isAsync) cont.getSemafor().acquire();
+                if(isAsync) invs[i].getSem().acquire();
                 while (invs[i].getAvailableMem() >= action.getActionSizeMB() && j < ((List<?>) actionParam).size()) {
                     resFinal.add((R) invs[i].runFunction(action, ((List<?>) actionParam).get(j)));  // afegim el resultat de la funcio a la llista de resultats
                     j++;
-                    count++; // comptador de funcions executades per l'Invoker i
                 }
-                invs[i].returnMem(action.getActionSizeMB() * count); // tornem mem a l'Invoker
-                if(isAsync) cont.getSemafor().release();
+                if(isAsync) invs[i].getSem().release();
             }
             return (R) resFinal;
         }
@@ -140,13 +124,6 @@ public class PolicyManager {
             Invoker[] invs = new Invoker[cont.getNInvokers()];
             invs = checkForMemory(cont, action, actionParam, 0, groupSize, 3, isAsync); // comprovem que hi ha prou memoria per executar el grup de groupSize funcions
             int i = 0;
-
-            int[] invExecfunctions = new int[cont.getNInvokers()];
-            for (i = 0; i < invExecfunctions.length; i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                invExecfunctions[i] = cont.getInvokers()[i].getExecFuncs();  // guardem el nombre de funcions executades per cada Invoker
-                if(isAsync) cont.getSemafor().release();
-            }
             
             List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
             int numFuncs = ((List<?>) actionParam).size();
@@ -155,9 +132,9 @@ public class PolicyManager {
             while(count < numFuncs) {   //mentre tinguem funcions
                 i = 0;
                 while(i < groupSize && count < numFuncs) {  //fem grups de 3 funcions fins que ens quedem sense funcions
-                    if(isAsync) cont.getSemafor().acquire();
+                    if(isAsync) invs[j].getSem().acquire();
                     resFinal.add((R) invs[j].runFunction(action, ((List<?>) actionParam).get(Math.min(count, numFuncs - 1))));
-                    if(isAsync) cont.getSemafor().release();
+                    if(isAsync) invs[j].getSem().release();
                     count++;    //comptem les funcions que hem executat
                     i++;    //comptem quantes funcions té el grup actual (max 3)
                 }
@@ -168,13 +145,6 @@ public class PolicyManager {
                 else
                     j++;    //seguim omplint el següent invoker
             }
-
-            for (i = 0; i < cont.getNInvokers(); i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                cont.getInvokers()[i].returnMem(action.getActionSizeMB() * (cont.getInvokers()[i].getExecFuncs() - invExecfunctions[i])); // tornem mem a l'Invoker
-                if(isAsync) cont.getSemafor().release();
-            }
-
             return (R) resFinal;
         }
         return soloFuncExec(cont, action, actionParam, isAsync);
@@ -196,29 +166,25 @@ public class PolicyManager {
             Invoker[] invs = new Invoker[cont.getNInvokers()];
             invs = checkForMemory(cont, action, actionParam, 0, groupSize, 4, isAsync); // comprovem que hi ha prou memoria per executar el grup de funcions
             int i = 0;
-
-            int[] invExecfunctions = new int[cont.getNInvokers()];
-            for (i = 0; i < invExecfunctions.length; i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                invExecfunctions[i] = cont.getInvokers()[i].getExecFuncs();  // guardem el nombre de funcions executades per cada Invoker
-                if(isAsync) cont.getSemafor().release();
-            }
             
             List<R> resFinal = new ArrayList<>(((List<?>) actionParam).size());
             int numFuncs = ((List<?>) actionParam).size();
             int count = 0;
             int j = 0;
             while(count < numFuncs) {   //mentre tinguem funcions
-                if(isAsync) cont.getSemafor().acquire();
+                if(isAsync) invs[j].getSem().acquire();
                 while(invs[j].getAvailableMem() >= action.getActionSizeMB() * groupSize && count < numFuncs) {  //fem grups de 3 funcions fins que ens quedem sense funcions
+                    if(isAsync) invs[j].getSem().release();
                     i = 0;
                     while(i < groupSize && count < numFuncs) {
+                        if(isAsync) invs[j].getSem().acquire();
                         resFinal.add((R) invs[j].runFunction(action, ((List<?>) actionParam).get(Math.min(count, numFuncs - 1))));
+                        if(isAsync) invs[j].getSem().release();
                         count++;    //comptem les funcions que hem executat
                         i++;    //comptem quantes funcions té el grup actual (max 3)
                     }
+                    if(isAsync) invs[j].getSem().acquire();
                 }
-                if(isAsync) cont.getSemafor().release();
                 if(j == invs.length - 1) {
                     j = 0; //si hem arribat al final de la llista de Invokers, tornem a començar
                     invs = checkForMemory(cont, action, actionParam, count, groupSize, 4, isAsync); // comprovem que hi ha prou memoria per executar el grup de groupSize funcions
@@ -226,15 +192,7 @@ public class PolicyManager {
                 else
                     j++;    //seguim omplint el següent invoker
             }
-
-            for (i = 0; i < cont.getNInvokers(); i++) {
-                if(isAsync) cont.getSemafor().acquire();
-                cont.getInvokers()[i].returnMem(action.getActionSizeMB() * (cont.getInvokers()[i].getExecFuncs() - invExecfunctions[i])); // tornem mem a l'Invoker
-                if(isAsync) cont.getSemafor().release();
-            }
-
-            return (R) resFinal;
-            
+            return (R) resFinal;   
         }
         return soloFuncExec(cont, action, actionParam, isAsync);
     }
@@ -259,17 +217,17 @@ public class PolicyManager {
         Invoker[] selectedInvokers = new Invoker[cont.getNInvokers()];
         int j = 0;
 
-        for (int i = 0; i < cont.getNInvokers(); i++) { // busquem tots els invokers amb prou memòria per executar la
-            // funcio
-            if(isAsync) cont.getSemafor().acquire();
-            if (cont.getInvokers()[i].getAvailableMem() < (action.getActionSizeMB() * groupSize)) {
-                continue; // si l'Invoker no té prou mem per executar la funcio al menys groupSize cop(s), passem al següent
-            } else {
+        for (int i = 0; i < cont.getNInvokers(); i++) { // busquem tots els invokers amb prou memòria per executar la funció
+            if(isAsync && !cont.getInvokers()[i].getSem().tryAcquire()) System.out.println("CFM Semàfor d'invoker " + i + " ple");
+            else 
+                if(isAsync) System.out.println("CFM Bloquejo semàfor d'invoker " + i);
+            if (cont.getInvokers()[i].getAvailableMem() >= (action.getActionSizeMB() * groupSize)) {
                 foundMem += cont.getInvokers()[i].getAvailableMem();
-                selectedInvokers[j] = cont.getInvokers()[i];
+                selectedInvokers[j] = cont.getInvokers()[i];    //si te prou mem el seleccionem
                 j++;
             }
-            if(isAsync) cont.getSemafor().release();
+            if(isAsync) cont.getInvokers()[i].getSem().release();
+            if(isAsync) System.out.println("CFM Llibero semàfor d'invoker " + i);
         }
         if (foundMem < totalMemGroup) {
             switch (policy) {
@@ -297,19 +255,26 @@ public class PolicyManager {
      */
     private static <T, R> R soloFuncExec(Controller cont, Action action, T actionParam, boolean isAsync) throws NotEnoughMemory, InterruptedException {
         int j = 0;
-        if(isAsync) cont.getSemafor().acquire();
-        while ((j < cont.getNInvokers()) && (cont.getInvokers()[j].getAvailableMem() < action.getActionSizeMB())) {
-            j++; // busquem el 1r Invoker amb prou memòria per executar la funció
+
+        while(isAsync) {
+            if(cont.getInvokers()[j%cont.getNInvokers()].getSem().tryAcquire()) break;  //iterem per tots els invokers fins que trobem un que no estigui ocupat
+            j++;
         }
+        while ((j < cont.getNInvokers()) && (cont.getInvokers()[j].getAvailableMem() < action.getActionSizeMB())) {
+            if(isAsync) cont.getInvokers()[j].getSem().release();
+            if(isAsync && cont.getInvokers()[j].getSem().tryAcquire()) break;
+            j++;
+        }
+        if(isAsync) cont.getInvokers()[j].getSem().release();
         if (j >= cont.getNInvokers()) {
             throw new NotEnoughMemory(
                     "La funció que vols executar no pot ser executada per cap Invoker degut a la seva gran mida.");
         }
 
+        if(isAsync) cont.getInvokers()[j].getSem().acquire();
         Invoker inv = cont.getInvokers()[j]; // guardem l'Invoker que executarà la funcio
         R resFinal = (R) inv.runFunction(action, actionParam);
-        inv.returnMem(action.getActionSizeMB()); // tornem mem a l'Invoker
-        if(isAsync) cont.getSemafor().release();
+        if(isAsync) cont.getInvokers()[j].getSem().release();
         return resFinal;
     }
 }

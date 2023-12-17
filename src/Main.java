@@ -11,5 +11,6 @@ public class Main {
         controller.registerAction("addAction", f, 256);
         int res = (int) controller.invoke("addAction", Map.of("x", 6, "y", 2), 2);
         System.out.println(res);
+        controller.getES().shutdown();
     }
 }

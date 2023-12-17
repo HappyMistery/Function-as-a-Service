@@ -14,7 +14,6 @@ public class Controller {
     private Map<String, Action> actions;
     private Invoker[] invokers;
     private ExecutorService executorService;
-    private Semaphore semafor;
      
     /**
      * @param nInv
@@ -29,7 +28,6 @@ public class Controller {
             invokers[i] = new Invoker(totalSizeMB/nInvokers);   //Inicialitzem cada Invoker de l'array
         }
         executorService = java.util.concurrent.Executors.newFixedThreadPool(nInvokers);
-        semafor = new Semaphore(nInvokers);
     }
 
 
@@ -43,10 +41,6 @@ public class Controller {
 
     public int getTotalSizeMB() {
         return totalSizeMB;
-    }
-
-    public Semaphore getSemafor() {
-        return semafor;
     }
 
     public ExecutorService getES() {
@@ -80,23 +74,17 @@ public class Controller {
         return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, false);
     }
 
-    //* 
     public <T, R> CompletableFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
         CompletableFuture<R> resultFuture = new CompletableFuture<>();
         executorService.submit(() -> {
             try{
-            //semafor.acquire();
             R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, true);
             resultFuture.complete(res);
-            //semafor.release();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-
         return resultFuture;
-            
     }
-    //*/
 }
