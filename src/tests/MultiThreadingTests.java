@@ -28,12 +28,12 @@ public class MultiThreadingTests {
         controller = new Controller(4, 1024);
         Function<Integer, String> sleep = s -> {
             try {
-            Thread.sleep(s * 1000);
-            return "Done!";
+                Thread.sleep(s * 1000);
+                return "Done!";
             } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+                throw new RuntimeException(e);
             }
-            };
+        };
         controller.registerAction("sleepAction", sleep, 50);
     }
 

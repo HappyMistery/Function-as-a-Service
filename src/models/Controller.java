@@ -5,7 +5,10 @@ import exceptions.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import java.util.concurrent.*;
+import java.util.Comparator;
+import java.util.List;
 
 
 public class Controller {
@@ -14,6 +17,7 @@ public class Controller {
     private Map<String, Action> actions;
     private Invoker[] invokers;
     private ExecutorService executorService;
+
      
     /**
      * @param nInv
@@ -86,5 +90,25 @@ public class Controller {
             }
         });
         return resultFuture;
+    }
+
+    public int calculateMaxTimeAction() {
+        return Stream.of(invokers).map(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).max(Comparator.naturalOrder()).orElse(0);
+    }
+
+    public int calculateMinTimeAction() {
+        return Stream.of(invokers).map(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).min(Comparator.naturalOrder()).orElse(0);
+    }
+
+    public float calculateMeanTimeAction() {
+        return (float) Stream.of(invokers).mapToDouble(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).average().orElse(0);
+    }
+
+    public int calculateAggregateTimeAction() {
+        return Stream.of(invokers).mapToInt(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).sum();
+    }
+
+    public List<Float> calculateMemoryForInvoker() {
+        return Stream.of(invokers).map(invoker -> (float) ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getMemoryUsage()).toList();
     }
 }
