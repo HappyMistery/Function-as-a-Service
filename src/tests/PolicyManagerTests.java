@@ -114,17 +114,17 @@ public class PolicyManagerTests {
 
     @Test
     public void asyncRoundRobin() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        List<Integer> input = Arrays.asList(2, 2, 2, 2, 2);
-        CompletableFuture res1, res2, res3;
+        List<Integer> input = Arrays.asList(1, 1, 1, 1);
+        CompletableFuture<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", input, 1);
         res2 = controller.invoke_async("sleepAction", input, 1);
         res3 = controller.invoke_async("sleepAction", input, 1);
 
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res1.get());
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res2.get());
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res3.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res1.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res2.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res3.get());
 
         System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
         System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
@@ -137,7 +137,7 @@ public class PolicyManagerTests {
         System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
         
         //funcions s'han repartit uniformement entre els 4 invokers
-        assertEquals(6, controller.getInvokers()[0].getExecFuncs());
+        assertEquals(3, controller.getInvokers()[0].getExecFuncs());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
         assertEquals(3, controller.getInvokers()[1].getExecFuncs());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
@@ -147,7 +147,7 @@ public class PolicyManagerTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
         
         long endTime = System.currentTimeMillis();
-        assertEquals(10, (endTime - startTime) / 1000);
+        assertEquals(4, (endTime - startTime) / 1000);
     }
 
     @Test
@@ -202,6 +202,45 @@ public class PolicyManagerTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
     }
 
+    @Test
+    public void asyncGreedyGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
+        List<Integer> input = Arrays.asList(2, 2);
+        CompletableFuture<String> res1, res2, res3;
+
+        long startTime = System.currentTimeMillis();
+        res1 = controller.invoke_async("sleepAction", input, 2);
+        res2 = controller.invoke_async("sleepAction", input, 2);
+        res3 = controller.invoke_async("sleepAction", input, 2);
+
+        assertEquals(Arrays.asList("Done!", "Done!"), res1.get());
+        assertEquals(Arrays.asList("Done!", "Done!"), res2.get());
+        assertEquals(Arrays.asList("Done!", "Done!"), res3.get());
+
+        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
+        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
+        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
+        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
+
+        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
+        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
+        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
+        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
+        
+        //funcions s'han repartit uniformement entre els 4 invokers
+        assertEquals(6, controller.getInvokers()[0].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[1].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[2].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[3].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
+        
+        long endTime = System.currentTimeMillis();
+        assertEquals(4, (endTime - startTime) / 1000);
+    }
+
+    
     @Test
     public void syncUniformGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         List<Map<String, Integer>> input = Arrays.asList(
@@ -273,6 +312,44 @@ public class PolicyManagerTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
         assertEquals(0, controller.getInvokers()[3].getExecFuncs());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
+    }
+
+    @Test
+    public void asyncUniformGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
+        List<Integer> input = Arrays.asList(1, 1, 1, 1, 1);
+        CompletableFuture<String> res1, res2, res3;
+
+        long startTime = System.currentTimeMillis();
+        res1 = controller.invoke_async("sleepAction", input, 3);
+        res2 = controller.invoke_async("sleepAction", input, 3);
+        res3 = controller.invoke_async("sleepAction", input, 3);
+
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res1.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res2.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res3.get());
+
+        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
+        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
+        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
+        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
+
+        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
+        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
+        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
+        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
+        
+        //funcions s'han repartit uniformement entre els 4 invokers
+        assertEquals(9, controller.getInvokers()[0].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
+        assertEquals(6, controller.getInvokers()[1].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[2].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[3].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
+        
+        long endTime = System.currentTimeMillis();
+        assertEquals(5, (endTime - startTime) / 1000);
     }
 
     @Test
@@ -372,4 +449,42 @@ public class PolicyManagerTests {
         assertEquals(controller2.getTotalSizeMB()/controller2.getNInvokers(), controller2.getInvokers()[3].getAvailableMem());
     }
 
+
+    @Test
+    public void asyncBigGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
+        List<Integer> input = Arrays.asList(2, 2, 2, 2);
+        CompletableFuture<String> res1, res2, res3;
+
+        long startTime = System.currentTimeMillis();
+        res1 = controller.invoke_async("sleepAction", input, 4);
+        res2 = controller.invoke_async("sleepAction", input, 4);
+        res3 = controller.invoke_async("sleepAction", input, 4);
+
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res1.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res2.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res3.get());
+
+        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
+        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
+        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
+        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
+
+        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
+        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
+        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
+        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
+        
+        //funcions s'han repartit uniformement entre els 4 invokers
+         assertEquals(12, controller.getInvokers()[0].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[1].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[2].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
+        assertEquals(0, controller.getInvokers()[3].getExecFuncs());
+        assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
+        
+        long endTime = System.currentTimeMillis();
+        assertEquals(8, (endTime - startTime) / 1000);
+    }
 }

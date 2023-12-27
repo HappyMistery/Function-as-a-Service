@@ -33,7 +33,6 @@ public class Invoker {
         R result = function.apply(funcParam); // passem els parametres a la funcio a invocar
         availableMem += action.getActionSizeMB(); // tornem mem disponible de l'Invoker
         execFuncs++; // augmentem el comptador de funcions executades per l'Invoker
-        System.out.println("Invoker has " + availableMem + "MB available and has executed " + execFuncs + " functions.");
         return result;
     }
 }

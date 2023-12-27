@@ -70,7 +70,7 @@ public class Controller {
      * @throws InterruptedException
      */
     public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected, InterruptedException {  //"public <T, R> R ..." fa mètode genèric
-        Action action = actions.get(actionName);    //obtenim la accio a executar
+        Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
         return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, false);
     }
 

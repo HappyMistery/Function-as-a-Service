@@ -69,7 +69,7 @@ public class InvokersTests {
     @Test
     public void throwsNEMSolo() throws NotEnoughMemory, PolicyNotDetected {
         assertThrows(NotEnoughMemory.class, () -> {
-            int res = (int) controller.invoke("addX2Action", Map.of("x", 6, "y", 2), 2);
+            controller.invoke("addX2Action", Map.of("x", 6, "y", 2), 2);
         });
     }
 
@@ -138,7 +138,7 @@ public class InvokersTests {
                     }
                 });
         assertThrows(NotEnoughMemory.class, () -> {
-            List<Integer> res = controller.invoke("addAction", input, 2); // 4 invokers no tenen prou mem
+            controller.invoke("addAction", input, 2); // 4 invokers no tenen prou mem
         });
     }
 
@@ -188,7 +188,7 @@ public class InvokersTests {
      @Test
     public void funcSoloAsync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
 
-        CompletableFuture res = controller.invoke_async("addAction", Map.of("x", 6, "y", 2), 1);
+        CompletableFuture<Integer> res = controller.invoke_async("addAction", Map.of("x", 6, "y", 2), 1);
         assertEquals(8, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
         
@@ -226,7 +226,7 @@ public class InvokersTests {
                         put("y", 8);
                     }
                 });
-        CompletableFuture result = controller.invoke_async("addAction", input, 2);
+        CompletableFuture<Integer> result = controller.invoke_async("addAction", input, 2);
 
         assertEquals(Arrays.asList(5, 10, 16), result.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());

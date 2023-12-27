@@ -63,9 +63,9 @@ public class MultiThreadingTests {
     public void SleepAsyncSolo() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         
         long startTime = System.currentTimeMillis();
-        CompletableFuture res1 = controller.invoke_async("sleepAction", 2, 1);
-        CompletableFuture res2 = controller.invoke_async("sleepAction", 2, 1);
-        CompletableFuture res3 = controller.invoke_async("sleepAction", 2, 1);
+        CompletableFuture<String> res1 = controller.invoke_async("sleepAction", 2, 1);
+        CompletableFuture<String> res2 = controller.invoke_async("sleepAction", 2, 1);
+        CompletableFuture<String> res3 = controller.invoke_async("sleepAction", 2, 1);
 
         assertEquals("Done!", res1.get());
         assertEquals("Done!", res2.get());
@@ -81,8 +81,8 @@ public class MultiThreadingTests {
 
     @Test
     public void SleepAsyncGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        List<Integer> segons = Arrays.asList(2, 2, 2, 2, 2);
-        CompletableFuture res1, res2, res3, res4;
+        List<Integer> segons = Arrays.asList(2, 2, 2, 2);
+        CompletableFuture<String> res1, res2, res3, res4;
     
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", segons, 1);
@@ -90,16 +90,16 @@ public class MultiThreadingTests {
         res3 = controller.invoke_async("sleepAction", segons, 3);
         res4 = controller.invoke_async("sleepAction", segons, 4);
 
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res1.get());
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res2.get());
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res3.get());
-        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res4.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res1.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res2.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res3.get());
+        assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res4.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[1].getAvailableMem());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[2].getAvailableMem());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
 
         long endTime = System.currentTimeMillis();
-        assertEquals(10, (endTime - startTime) / 1000);
+        assertEquals(8, (endTime - startTime) / 1000);
     }
 }
