@@ -1,12 +1,9 @@
 package models;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 
 public class Invoker {
-
     private float availableMem;
     private int execFuncs;
     private Semaphore sem;
