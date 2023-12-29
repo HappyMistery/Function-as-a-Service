@@ -14,19 +14,19 @@ public class TimerDecorator extends Controller {
         this.controller = controller;
     }
 
+    @Override
     public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected, InterruptedException {
         AtomicReference<R> resultContainer = new AtomicReference<>();
 
         Thread threadInvoke = new Thread(() -> {
             try {
-                R result = super.invoke(actionName, actionParam, controller.getNInvokers());
+                R result = controller.invoke(actionName, actionParam, controller.getNInvokers());
                 resultContainer.set(result);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
 
-        /*
         Thread threadTimer = new Thread(() -> {
             long startTime = System.currentTimeMillis();
             long endTime;
@@ -35,7 +35,7 @@ public class TimerDecorator extends Controller {
             }
             while (resultContainer.get() == null) {
                 try {
-                    Thread.sleep(100);  // Ajusta el tiempo de espera según sea necesario
+                    Thread.sleep(1);  // Ajusta el tiempo de espera según sea necesario
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -43,13 +43,12 @@ public class TimerDecorator extends Controller {
                 System.out.println("Time taken: " + (endTime - startTime) + " milliseconds");
             }
         });
-        */
 
         threadInvoke.start();
-        //threadTimer.start();
+        threadTimer.start();
 
         threadInvoke.join();
-        //threadTimer.join();
+        threadTimer.join();
 
         return (R) resultContainer.get();
     }
