@@ -9,12 +9,7 @@ import exceptions.PolicyNotDetected;
 import models.ConcreteObserver;
 import models.Controller;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,9 +48,9 @@ public class ObserverTests {
             controller.getInvokers()[i].addObserver(observer);
         }
         
-        String res = controller.invoke("sleepAction", 3, 1);
+        String res = controller.invoke("sleepAction", 1, 1);
         assertEquals("Done!", res);
-        assertEquals(3, observer.getReceivedMetricData().getExecutionTime() / 1000);
+        assertEquals(1, observer.getReceivedMetricData().getExecutionTime() / 1000);
     }
 
     @Test
@@ -94,9 +89,9 @@ public class ObserverTests {
             controller.getInvokers()[i].addObserver(observer);
         }
 
-        String res = controller.invoke("sleepAction", 2, 1);
+        controller.invoke("sleepAction", 1, 1);
         int maxTime = controller.calculateMaxTimeAction();
-        assertEquals(2, maxTime / 1000);
+        assertEquals(1, maxTime / 1000);
     }
 
     @Test
@@ -107,9 +102,9 @@ public class ObserverTests {
             controller.getInvokers()[i].addObserver(observer);
         }
         
-        String res = controller.invoke("sleepAction", 2, 1);
+        controller.invoke("sleepAction", 1, 1);
         int minTime = controller.calculateMinTimeAction();
-        assertEquals(2, minTime / 1000);
+        assertEquals(1, minTime / 1000);
     }
 
     @Test
@@ -120,9 +115,9 @@ public class ObserverTests {
             controller.getInvokers()[i].addObserver(observer);
         }
 
-        String res = controller.invoke("sleepAction", 2, 1);
+        controller.invoke("sleepAction", 1, 1);
         float meanTime = controller.calculateMeanTimeAction();
-        assertEquals(2, (int) meanTime / 1000);
+        assertEquals(1, (int) meanTime / 1000);
     }
 
     @Test
@@ -133,9 +128,9 @@ public class ObserverTests {
             controller.getInvokers()[i].addObserver(observer);
         }
 
-        String res = controller.invoke("sleepAction", 2, 1);
+        controller.invoke("sleepAction", 1, 1);
         int aggregateTime = controller.calculateAggregateTimeAction();
-        assertEquals(2 * controller.getNInvokers(), aggregateTime / 1000);
+        assertEquals(1 * controller.getNInvokers(), aggregateTime / 1000);
     }
 
     @Test
@@ -146,7 +141,7 @@ public class ObserverTests {
             controller.getInvokers()[i].addObserver(observer);
         }
 
-        String res = controller.invoke("sleepAction", 2, 1);
+        controller.invoke("sleepAction", 1, 1);
         List<Float> memoryForInvoker = controller.calculateMemoryForInvoker();
         assertEquals(controller.getNInvokers(), memoryForInvoker.size());
         assertTrue(memoryForInvoker.stream().allMatch(mem -> mem == 50));

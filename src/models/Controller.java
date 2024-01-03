@@ -58,9 +58,10 @@ public class Controller {
      * @param f
      * @param actionSizeMB
      */
-    public <T, R> void registerAction(String actionName, Function<T, R> f, int actionSizeMB) {  //"public <T, R> void ..." fa mètode genèric
+    public <T, R> Action registerAction(String actionName, Function<T, R> f, int actionSizeMB) {  //"public <T, R> void ..." fa mètode genèric
         Action<T, R> action = new Action<>(actionName, f, actionSizeMB);    //creem una Action<T, R> amb la info proporcionada
         actions.put(actionName, action);    //afegim la accio al HashMap d'accions
+        return action;
     }
 
 

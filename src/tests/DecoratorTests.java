@@ -57,7 +57,7 @@ public class DecoratorTests {
 
     @Test
     public void testSleepTime() throws InterruptedException, NotEnoughMemory, PolicyNotDetected {
-        String res = timerDecorator.invoke("sleepAction", 5, 1);
+        String res = timerDecorator.invoke("sleepAction", 2, 1);
         assertEquals("Done!", res);
     }
 

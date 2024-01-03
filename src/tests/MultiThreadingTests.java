@@ -47,25 +47,25 @@ public class MultiThreadingTests {
     public void SleepSync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         
         long startTime = System.currentTimeMillis();
-        String res1 = controller.invoke("sleepAction", 2, 1);
-        String res2 = controller.invoke("sleepAction", 2, 2);
-        String res3 = controller.invoke("sleepAction", 2, 3);
+        String res1 = controller.invoke("sleepAction", 1, 1);
+        String res2 = controller.invoke("sleepAction", 1, 2);
+        String res3 = controller.invoke("sleepAction", 1, 3);
         long endTime = System.currentTimeMillis();
 
         assertEquals("Done!", res1);
         assertEquals("Done!", res2);
         assertEquals("Done!", res3);
 
-        assertEquals(6, (endTime - startTime) / 1000);
+        assertEquals(3, (endTime - startTime) / 1000);
     }
 
     @Test
     public void SleepAsyncSolo() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         
         long startTime = System.currentTimeMillis();
-        CompletableFuture<String> res1 = controller.invoke_async("sleepAction", 2, 1);
-        CompletableFuture<String> res2 = controller.invoke_async("sleepAction", 2, 1);
-        CompletableFuture<String> res3 = controller.invoke_async("sleepAction", 2, 1);
+        CompletableFuture<String> res1 = controller.invoke_async("sleepAction", 1, 1);
+        CompletableFuture<String> res2 = controller.invoke_async("sleepAction", 1, 1);
+        CompletableFuture<String> res3 = controller.invoke_async("sleepAction", 1, 1);
 
         assertEquals("Done!", res1.get());
         assertEquals("Done!", res2.get());
@@ -76,7 +76,7 @@ public class MultiThreadingTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
 
         long endTime = System.currentTimeMillis();
-        assertEquals(2, (endTime - startTime) / 1000);
+        assertEquals(1, (endTime - startTime) / 1000);
     }
 
     @Test
