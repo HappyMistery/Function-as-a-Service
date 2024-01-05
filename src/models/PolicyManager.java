@@ -65,7 +65,7 @@ public class PolicyManager {
                 }
                 if(isAsync) invs[j].getSem().release();
 
-                if (j == invs.length - 1) {
+                if (j >= invs.length - 1) {
                     j = 0; // si hem arribat al final de la llista de Invokers, tornem a començar
                     invs = checkForMemory(cont, action, actionParam, i + 1, 1, 1, isAsync); // comprovem que hi ha prou memoria per executar el grup de funcions
                 } else {
@@ -221,13 +221,11 @@ public class PolicyManager {
         int j = 0;
 
         for (int i = 0; i < cont.getNInvokers(); i++) { // busquem tots els invokers amb prou memòria per executar la funció
-            if(isAsync) cont.getInvokers()[i].getSem().acquire();
             if (cont.getInvokers()[i].getAvailableMem() >= (action.getActionSizeMB() * groupSize)) {
                 foundMem += cont.getInvokers()[i].getAvailableMem();
                 selectedInvokers[j] = cont.getInvokers()[i];    //si te prou mem el seleccionem
                 j++;
             }
-            if(isAsync) cont.getInvokers()[i].getSem().release();
         }
         if (foundMem < totalMemGroup) {
             switch (policy) {
@@ -273,10 +271,10 @@ public class PolicyManager {
                     "La funció que vols executar no pot ser executada per cap Invoker degut a la seva gran mida.");
         }
 
-        if(isAsync) cont.getInvokers()[j].getSem().acquire();
         Invoker inv = cont.getInvokers()[j]; // guardem l'Invoker que executarà la funcio
+        if(isAsync) inv.getSem().acquire();
         R resFinal = (R) inv.runFunction(action, actionParam);
-        if(isAsync) cont.getInvokers()[j].getSem().release();
+        if(isAsync) inv.getSem().release();
         return resFinal;
     }
 }
