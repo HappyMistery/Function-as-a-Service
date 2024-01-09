@@ -3,12 +3,12 @@ package models;
 import exceptions.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Semaphore;
-
+import java.util.stream.Stream;
+import java.util.concurrent.*;
+import java.util.Comparator;
+import java.util.List;
 
 
 public class Controller {
@@ -17,7 +17,7 @@ public class Controller {
     private Map<String, Action> actions;
     private Invoker[] invokers;
     private ExecutorService executorService;
-    private Semaphore semafor;
+
      
     /**
      * @param nInv
@@ -32,7 +32,6 @@ public class Controller {
             invokers[i] = new Invoker(totalSizeMB/nInvokers);   //Inicialitzem cada Invoker de l'array
         }
         executorService = java.util.concurrent.Executors.newFixedThreadPool(nInvokers);
-        semafor = new Semaphore(totalSizeMB);
     }
 
 
@@ -48,6 +47,10 @@ public class Controller {
         return totalSizeMB;
     }
 
+    public ExecutorService getES() {
+        return executorService;
+    }
+
     /**
      * @param <T>
      * @param <R>
@@ -55,9 +58,10 @@ public class Controller {
      * @param f
      * @param actionSizeMB
      */
-    public <T, R> void registerAction(String actionName, Function<T, R> f, int actionSizeMB) {  //"public <T, R> void ..." fa mètode genèric
+    public <T, R> Action registerAction(String actionName, Function<T, R> f, int actionSizeMB) {  //"public <T, R> void ..." fa mètode genèric
         Action<T, R> action = new Action<>(actionName, f, actionSizeMB);    //creem una Action<T, R> amb la info proporcionada
         actions.put(actionName, action);    //afegim la accio al HashMap d'accions
+        return action;
     }
 
 
@@ -68,73 +72,44 @@ public class Controller {
      * @param actionParam
      * @return
      * @throws NotEnoughMemory
+     * @throws InterruptedException
      */
-    public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {  //"public <T, R> R ..." fa mètode genèric
-        Action action = actions.get(actionName);    //obtenim la accio a executar
-        return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
-    }
-
-    /* 
-    public <T, R> ResultFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
+    public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected, InterruptedException {  //"public <T, R> R ..." fa mètode genèric
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
-        ResultFuture<R> resultFuture = new ResultFuture<>();
-        executorService.submit(() -> {
-            semafor.acquire();
-            R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy);
-            resultFuture.setResult(res);
-            semafor.release();
-        });
-        executorService.shutdown();
-
-        return resultFuture;
-            
+        return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, false);
     }
-    //*/
 
-    /**
-     * @param <T>
-     * @param <R>
-     * @param action
-     * @param actionParam
-     * @return
-     * @throws NotEnoughMemory
-     */
-    public <T, R> Invoker[] selectInvoker(Action action, T actionParam) throws NotEnoughMemory{
-        int i = 0;
-        Invoker[] invs = new Invoker[nInvokers];
-        if(actionParam instanceof List<?>) {    //si ens passen una llista de parametres
-            float totalMemGroup = action.getActionSizeMB() * ((List<?>) actionParam).size();
-            float foundMem = 0;
-            for(i = 0; i < nInvokers; i++) {
-                if(invokers[i].getAvailableMem() < action.getActionSizeMB()) {
-                    continue;   //si l'Invoker no té prou mem per executar la funcio al menys 1 cop, passem al següent
-                }
-                else {
-                    foundMem += invokers[i].getAvailableMem();
-                }
+    public <T, R> CompletableFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
+        Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
+        CompletableFuture<R> resultFuture = new CompletableFuture<>();
+        executorService.submit(() -> {
+            try{
+            R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, true);
+            resultFuture.complete(res);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        });
+        return resultFuture;
+    }
 
-            if(foundMem < totalMemGroup) throw new NotEnoughMemory("Les funcions que vols executar no poden ser executades al complet.");
+    public int calculateMaxTimeAction() {
+        return Stream.of(invokers).map(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).max(Comparator.naturalOrder()).orElse(0);
+    }
 
-            int j = 0;
-            for(i = 0; i < nInvokers; i++) {
-                if(invokers[i].getAvailableMem() < action.getActionSizeMB()) {
-                    continue;
-                }
-                else {
-                    invs[j] = invokers[i];
-                    j++;
-                }
-            }
-            return invs;
-        }
+    public int calculateMinTimeAction() {
+        return Stream.of(invokers).map(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).min(Comparator.naturalOrder()).orElse(0);
+    }
 
-        while((i < nInvokers) && (invokers[i].getAvailableMem() < action.getActionSizeMB())) {
-            i++;        //busquem un Invoker amb prou memòria per executar la funcio
-        }
-        if(i >= nInvokers)
-            throw new NotEnoughMemory("La funció que vols executar no pot ser executada per cap Invoker degut a la seva gran mida.");
-        invs[0] = invokers[i];  //guardem l'Invoker que executarà la funcio
-        return invs;
+    public float calculateMeanTimeAction() {
+        return (float) Stream.of(invokers).mapToDouble(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).average().orElse(0);
+    }
+
+    public int calculateAggregateTimeAction() {
+        return Stream.of(invokers).mapToInt(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).sum();
+    }
+
+    public List<Float> calculateMemoryForInvoker() {
+        return Stream.of(invokers).map(invoker -> (float) ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getMemoryUsage()).toList();
     }
 }
