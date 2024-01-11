@@ -44,7 +44,9 @@ public class InvokersTests {
 
     @AfterAll
     public void closing() {
-        controller.getES().shutdown();
+        for(int i = 0; i < controller.getNInvokers(); i++) {
+            controller.getInvokers()[i].getES().shutdown();
+        }
     }
 
     @Test

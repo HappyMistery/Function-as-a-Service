@@ -56,8 +56,9 @@ public class PolicyManagerTests {
 
     @AfterAll
     public void closing() {
-        controller.getES().shutdown();
-        controller = null;
+        for(int i = 0; i < controller.getNInvokers(); i++) {
+            controller.getInvokers()[i].getES().shutdown();
+        }
     }
 
     @Test

@@ -3,6 +3,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.function.Function;
+
+import org.junit.jupiter.api.AfterAll;
+
 import exceptions.NotEnoughMemory;
 import exceptions.PolicyNotDetected;
 import models.ConcreteObserver;
@@ -30,7 +33,10 @@ public class Main {
         //controller.displayExecutionTimeStats();
         //controller.displayExecutionTimeByInvoker(observer);
 
-        controller.getES().shutdown();
+        
+        for(int i = 0; i < controller.getNInvokers(); i++) {
+            controller.getInvokers()[i].getES().shutdown();
+        }
     }
 
         public static String readFile() throws IOException {

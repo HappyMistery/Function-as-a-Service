@@ -18,8 +18,8 @@ public class Controller {
     private int totalSizeMB;
     private Map<String, Action> actions;
     private Invoker[] invokers;
-    private ExecutorService executorService;
     private List<MetricData> metricsList = new ArrayList<>();
+    private PolicyManager policyManager;
 
 
      
@@ -35,7 +35,6 @@ public class Controller {
         for(int i = 0; i < nInvokers; i++) {
             invokers[i] = new Invoker(totalSizeMB/nInvokers);   //Inicialitzem cada Invoker de l'array
         }
-        executorService = java.util.concurrent.Executors.newFixedThreadPool(nInvokers);
     }
 
 
@@ -51,8 +50,8 @@ public class Controller {
         return totalSizeMB;
     }
 
-    public ExecutorService getES() {
-        return executorService;
+    public PolicyManager getPolicyManager() {
+        return policyManager;
     }
 
     /**
@@ -69,6 +68,21 @@ public class Controller {
     }
 
 
+    private PolicyManager specifPolicyManager(int policy) {
+        switch (policy) {
+            case 1:
+                return new RoundRobin();
+            case 2:
+                return new GreedyGroup();
+            case 3:
+                return new UniformGroup();
+            case 4:
+                return new BigGroup();
+            default:
+                return null;
+        }
+    }
+
     /**
      * @param <T>
      * @param <R>
@@ -80,19 +94,14 @@ public class Controller {
      */
     public <T, R> R invoke(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected, InterruptedException {  //"public <T, R> R ..." fa mètode genèric
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
-        return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, false);
+        policyManager = specifPolicyManager(policy);
+        return invokers[0].invoke(this, action, actionParam, policyManager);    //invocar la accio amb el primer Invoker
     }
 
     public <T, R> Future<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
-        return executorService.submit(() -> {
-            try{
-            return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return null;
-        });
+        policyManager = specifPolicyManager(policy);
+        return invokers[0].invoke_async(this, action, actionParam, policyManager);    //invocar la accio amb el primer Invoker
     }
 
     public int calculateMaxTimeAction() {
