@@ -41,18 +41,12 @@ public class Invoker {
 
     public void acquireMemory(float mem) throws NotEnoughMemory {
         synchronized (memoryLock) {
-            if (availableMem < mem) {
-                throw new NotEnoughMemory("Not enough memory available");
-            }
             availableMem -= mem;
         }
     }
 
     public void releaseMemory(float mem) throws NotEnoughMemory {
         synchronized (memoryLock) {
-            if (availableMem < mem) {
-                throw new NotEnoughMemory("Not enough memory available");
-            }
             availableMem += mem;
         }
     }
