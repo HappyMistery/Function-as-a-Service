@@ -1,10 +1,13 @@
 package models;
 import java.util.function.Function;
 
+import exceptions.NotEnoughMemory;
+
 public class Action<T, R> {
     private String actionName;
     private Function<T, R> function;
     private int actionSizeMB;
+
 
     public Action(String name, Function<T, R> func, int sizeMB) {
         actionName = name;
@@ -26,6 +29,14 @@ public class Action<T, R> {
 
     public int getActionSizeMB() {
         return actionSizeMB;
+    }
+
+    public R run(T funcParam, Invoker invoker) throws NotEnoughMemory {
+        invoker.acquireMemory(actionSizeMB);
+        R result = function.apply(funcParam);
+        invoker.releaseMemory(actionSizeMB);
+        invoker.addExecFunc();
+        return result;
     }
 
 }

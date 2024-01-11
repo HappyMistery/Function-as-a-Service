@@ -1,7 +1,6 @@
 package models;
 
 import java.util.List;
-import java.util.ArrayList;
 import exceptions.NotEnoughMemory;
 import exceptions.PolicyNotDetected;
 
@@ -80,26 +79,14 @@ public abstract class PolicyManager {
     protected static <T, R> R soloFuncExec(Controller cont, Action<T, R> action, T actionParam, boolean isAsync) throws NotEnoughMemory, InterruptedException {
         int j = 0;
 
-        while(isAsync) {
-            if(cont.getInvokers()[j].getSem().tryAcquire()) break;  //iterem per tots els invokers fins que trobem un que no estigui ocupat
-            j++;
-            j = j%cont.getNInvokers();
-        }
-        while ((j < cont.getNInvokers()) && (cont.getInvokers()[j].getAvailableMem() < action.getActionSizeMB())) { // busquem un invoker amb prou memòria per executar la funció
-            if(isAsync) cont.getInvokers()[j].getSem().release();
-            j++;
-            if(isAsync) cont.getInvokers()[j].getSem().acquire();
-        }
-        if(isAsync) cont.getInvokers()[j].getSem().release();
+        while ((j < cont.getNInvokers()) && (cont.getInvokers()[j].getAvailableMem() < action.getActionSizeMB())) j++;// busquem un invoker amb prou memòria per executar la funció
         if (j >= cont.getNInvokers()) {
             throw new NotEnoughMemory(
                     "La funció que vols executar no pot ser executada per cap Invoker degut a la seva gran mida.");
         }
 
         Invoker inv = cont.getInvokers()[j]; // guardem l'Invoker que executarà la funcio
-        if(isAsync) inv.getSem().acquire();
         R resFinal = (R) inv.runFunction(action, actionParam);
-        if(isAsync) inv.getSem().release();
         return resFinal;
     }
 }

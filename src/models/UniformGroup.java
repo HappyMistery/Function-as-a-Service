@@ -36,9 +36,7 @@ public class UniformGroup extends PolicyManager {
             while(count < numFuncs) {   //mentre tinguem funcions
                 i = 0;
                 while(i < groupSize && count < numFuncs) {  //fem grups de 3 funcions fins que ens quedem sense funcions
-                    if(isAsync) invs[j].getSem().acquire();
                     resFinal.add((R) invs[j].runFunction(action, ((List<T>) actionParam).get(Math.min(count, numFuncs - 1))));
-                    if(isAsync) invs[j].getSem().release();
                     count++;    //comptem les funcions que hem executat
                     i++;    //comptem quantes funcions té el grup actual (max 3)
                 }

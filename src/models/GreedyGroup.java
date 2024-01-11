@@ -32,12 +32,10 @@ public class GreedyGroup extends PolicyManager {
             List<R> resFinal = new ArrayList<>(((List<T>) actionParam).size());
             int j = 0;
             for (i = 0; i < invs.length; i++) {
-                if(isAsync) invs[i].getSem().acquire();
                 while (invs[i].getAvailableMem() >= action.getActionSizeMB() && j < ((List<T>) actionParam).size()) {
                     resFinal.add((R) invs[i].runFunction(action, ((List<T>) actionParam).get(j)));  // afegim el resultat de la funcio a la llista de resultats
                     j++;
                 }
-                if(isAsync) invs[i].getSem().release();
             }
             return (R) resFinal;
         }

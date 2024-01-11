@@ -32,7 +32,6 @@ public class BigGroup extends PolicyManager {
             int count = 0;
             int j = 0;
             while(count < numFuncs) {   //mentre tinguem funcions
-                if(isAsync) invs[j].getSem().acquire();
                 while((invs[j].getAvailableMem() >= action.getActionSizeMB() * groupSize) &&(count < numFuncs)) {  //fem grups de 3 funcions fins que ens quedem sense funcions
                     i = 0;
                     while(i < groupSize && count < numFuncs) {
@@ -41,7 +40,6 @@ public class BigGroup extends PolicyManager {
                         i++;    //comptem quantes funcions té el grup actual (max 3)
                     }
                 }
-                if(isAsync) invs[j].getSem().release();
                 if(j == invs.length - 1)
                     invs = checkForMemory(cont, action, actionParam, count, groupSize, 4, isAsync); // comprovem que hi ha prou memoria per executar el grup de groupSize funcions
                 j++;

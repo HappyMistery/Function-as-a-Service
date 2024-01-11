@@ -23,7 +23,7 @@ public class DecoratorTests {
     @BeforeEach
     public void setUp() {
         Function<Integer, Integer> f = x -> calculateFactorial(x);
-        controller.registerAction("factorial", f, 512);
+        controller.registerAction("factorial", f, 256);
         Function<Integer, String> sleep = s -> {
             try {
             Thread.sleep(s * 1000);
