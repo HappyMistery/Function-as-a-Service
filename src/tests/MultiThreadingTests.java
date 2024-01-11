@@ -8,7 +8,7 @@ import exceptions.NotEnoughMemory;
 import exceptions.PolicyNotDetected;
 import models.Controller;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.List;
@@ -63,9 +63,9 @@ public class MultiThreadingTests {
     public void SleepAsyncSolo() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         
         long startTime = System.currentTimeMillis();
-        CompletableFuture<String> res1 = controller.invoke_async("sleepAction", 1, 1);
-        CompletableFuture<String> res2 = controller.invoke_async("sleepAction", 1, 1);
-        CompletableFuture<String> res3 = controller.invoke_async("sleepAction", 1, 1);
+        Future<String> res1 = controller.invoke_async("sleepAction", 1, 1);
+        Future<String> res2 = controller.invoke_async("sleepAction", 1, 1);
+        Future<String> res3 = controller.invoke_async("sleepAction", 1, 1);
 
         assertEquals("Done!", res1.get());
         assertEquals("Done!", res2.get());
@@ -82,7 +82,7 @@ public class MultiThreadingTests {
     @Test
     public void SleepAsyncGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         List<Integer> segons = Arrays.asList(2, 2, 2, 2);
-        CompletableFuture<String> res1, res2, res3, res4;
+        Future<String> res1, res2, res3, res4;
     
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", segons, 1);

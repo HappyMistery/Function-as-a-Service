@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -17,6 +19,8 @@ public class Controller {
     private Map<String, Action> actions;
     private Invoker[] invokers;
     private ExecutorService executorService;
+    private List<MetricData> metricsList = new ArrayList<>();
+
 
      
     /**
@@ -79,18 +83,16 @@ public class Controller {
         return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, false);
     }
 
-    public <T, R> CompletableFuture<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
+    public <T, R> Future<R> invoke_async(String actionName, T actionParam, int policy) throws NotEnoughMemory, PolicyNotDetected {
         Action<T, R> action = actions.get(actionName);    //obtenim la accio a executar
-        CompletableFuture<R> resultFuture = new CompletableFuture<>();
-        executorService.submit(() -> {
+        return executorService.submit(() -> {
             try{
-            R res = PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, true);
-            resultFuture.complete(res);
+            return PolicyManager.selectInvokerWithPolicy(this, action, actionParam, policy, true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            return null;
         });
-        return resultFuture;
     }
 
     public int calculateMaxTimeAction() {
@@ -111,5 +113,31 @@ public class Controller {
 
     public List<Float> calculateMemoryForInvoker() {
         return Stream.of(invokers).map(invoker -> (float) ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getMemoryUsage()).toList();
+    }
+
+
+    /**
+     * Muestra las estadísticas de tiempo de ejecución de todas las acciones ejecutadas por cada invocador.
+     * Incluye el tiempo máximo, mínimo y promedio de ejecución.
+     */
+    public <T, R> void displayExecutionTimeStats() {
+        for(Action<T, R> action : actions.values()) {
+            System.out.println("Action: " + action.getActionName() +
+                    ", Max Time: " + this.calculateMaxTimeAction() +
+                    ", Min Time: " + this.calculateMinTimeAction() +
+                    ", Avg Time: " + this.calculateMeanTimeAction());
+        }
+    }
+    
+
+    /**
+     * Muestra el tiempo total de ejecución por cada invocador.
+     */
+    public void displayExecutionTimeByInvoker(Observer observer) {
+        
+        Arrays.asList(invokers).stream().forEach(invoker -> {
+            System.out.println("Invoker: " + invoker +
+                    ", Total Execution Time: " + ((ConcreteObserver) observer).getReceivedMetricData().getExecutionTime());
+        });
     }
 }

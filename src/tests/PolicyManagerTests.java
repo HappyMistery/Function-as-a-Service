@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
@@ -115,7 +115,7 @@ public class PolicyManagerTests {
     @Test
     public void asyncRoundRobin() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         List<Integer> input = Arrays.asList(1, 1, 1, 1);
-        CompletableFuture<String> res1, res2, res3;
+        Future<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", input, 1);
@@ -205,7 +205,7 @@ public class PolicyManagerTests {
     @Test
     public void asyncGreedyGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         List<Integer> input = Arrays.asList(2, 2);
-        CompletableFuture<String> res1, res2, res3;
+        Future<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", input, 2);
@@ -317,7 +317,7 @@ public class PolicyManagerTests {
     @Test
     public void asyncUniformGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         List<Integer> input = Arrays.asList(1, 1, 1, 1, 1);
-        CompletableFuture<String> res1, res2, res3;
+        Future<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", input, 3);
@@ -453,7 +453,7 @@ public class PolicyManagerTests {
     @Test
     public void asyncBigGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
         List<Integer> input = Arrays.asList(2, 2, 2, 2);
-        CompletableFuture<String> res1, res2, res3;
+        Future<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
         res1 = controller.invoke_async("sleepAction", input, 4);

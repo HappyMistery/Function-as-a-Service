@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
@@ -188,7 +188,7 @@ public class InvokersTests {
      @Test
     public void funcSoloAsync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
 
-        CompletableFuture<Integer> res = controller.invoke_async("addAction", Map.of("x", 6, "y", 2), 1);
+        Future<Integer> res = controller.invoke_async("addAction", Map.of("x", 6, "y", 2), 1);
         assertEquals(8, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
         
@@ -226,7 +226,7 @@ public class InvokersTests {
                         put("y", 8);
                     }
                 });
-        CompletableFuture<Integer> result = controller.invoke_async("addAction", input, 2);
+        Future<Integer> result = controller.invoke_async("addAction", input, 2);
 
         assertEquals(Arrays.asList(5, 10, 16), result.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());
