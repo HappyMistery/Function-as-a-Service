@@ -31,7 +31,6 @@ public class RoundRobin extends PolicyManager {
             for (i = 0; i < ((List<T>) actionParam).size(); i++) {
                 if (invs[j].getAvailableMem() >= action.getActionSizeMB()) {
                     resFinal.add((R) invs[j].runFunction(action, ((List<T>) actionParam).get(i)));    // afegim el resultat de la funcio a la llista de resultats
-                    System.out.println("Invoker " + j + " has " + invs[j].getAvailableMem() + "MB available and has executed " + invs[j].getExecFuncs() + " functions.");
                 }
 
                 if (j >= invs.length - 1) {

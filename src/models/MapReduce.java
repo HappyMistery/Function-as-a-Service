@@ -3,10 +3,14 @@ package models;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 public class MapReduce {
 
-    public MapReduce(int parts) {
+    private final int parts;
+
+    public MapReduce() {
+        parts = 5;
         executorService = Executors.newFixedThreadPool(parts);
     }
 
@@ -18,9 +22,9 @@ public class MapReduce {
      * @param parts
      * @return
      */
-    public Map<String, Integer> wordCount(String text, int parts) {
+    public Map<String, Integer> wordCount(String text) {
     List<Future<Map<String, Integer>>> futures = new ArrayList<>();
-    List<List<String>> partitions = makePartitions(text, parts);
+    List<List<String>> partitions = makePartitions(text);
 
     // Fase Map
     for (List<String> partition : partitions) {
@@ -56,8 +60,8 @@ public class MapReduce {
      * @param parts
      * @return
      */
-    public Map<String,Integer> countWords(String text, int parts) {
-        List<List<String>> partitions = makePartitions(text, parts);
+    public Map<String,Integer> countWords(String text) {
+        List<List<String>> partitions = makePartitions(text);
 
         // Fase Map
         List<Future<Integer>> futures = new ArrayList<>();
@@ -93,7 +97,7 @@ public class MapReduce {
      * @param map2 El segundo mapa a combinar.
      * @return Un nuevo mapa resultante de la combinación de map1 y map2.
      */
-    private Map<String, Integer> mergeMaps(Map<String, Integer> map1, Map<String, Integer> map2) {
+    public Map<String, Integer> mergeMaps(Map<String, Integer> map1, Map<String, Integer> map2) {
         Map<String, Integer> result = new HashMap<>(map1);
 
         for (Map.Entry<String, Integer> entry : map2.entrySet()) {
@@ -110,22 +114,21 @@ public class MapReduce {
      * @param threads El número de partes en las que dividir el texto.
      * @return Una lista de listas de palabras, donde cada lista interna representa una parte del texto.
      */
-    private List<List<String>> makePartitions(String text, int part){
-        List<String> total = Arrays.stream(text.replaceAll("[\",':;_$%*<>!.?\\n]", " ")
+    private List<List<String>> makePartitions(String text){
+        List<String> total = Arrays.stream(text.replaceAll("[^A-Za-z]+", " ")
             .split("\\s+"))
             .filter(word -> !word.isEmpty())
             .toList();
-            
-        int wordsPerThread = total.size() / part;
+        int wordsPerThread = total.size() / parts;
         List<List<String>> partitions = new ArrayList<>();
-        for (int i = 0; i < part; i++) {
+        for (int i = 0; i < parts; i++) {
             int start = i * wordsPerThread;
             int end = (i + 1) * wordsPerThread;
             List<String> partition = new ArrayList<>();
             for (int j = start; j < end; j++) {
                 String word = total.get(j);
                 partition.add(word);
-                if(i==part-1 && j==end-1){
+                if(i==parts-1 && j==end-1){
                     for (int k = end; k < total.size(); k++) {
                         word = total.get(k);
                         partition.add(word);
