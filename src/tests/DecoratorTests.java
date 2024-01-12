@@ -2,14 +2,10 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import exceptions.*;
 
 import java.util.function.Function;
 import models.*;
@@ -23,7 +19,7 @@ public class DecoratorTests {
     @BeforeEach
     public void setUp() {
         Function<Integer, Integer> f = x -> calculateFactorial(x);
-        controller.registerAction("factorial", f, 512);
+        controller.registerAction("factorial", f, 256);
         Function<Integer, String> sleep = s -> {
             try {
             Thread.sleep(s * 1000);
@@ -37,8 +33,9 @@ public class DecoratorTests {
 
     @AfterAll
     public void closing() {
-        controller.getES().shutdown();
-        controller = null;
+        for(int i = 0; i < controller.getNInvokers(); i++) {
+            controller.getInvokers()[i].getES().shutdown();
+        }
     }
 
     private int calculateFactorial(int n) {
@@ -57,7 +54,7 @@ public class DecoratorTests {
 
     @Test
     public void testSleepTime() throws InterruptedException, NotEnoughMemory, PolicyNotDetected {
-        String res = timerDecorator.invoke("sleepAction", 2, 1);
+        String res = timerDecorator.invoke("sleepAction", 1, 1);
         assertEquals("Done!", res);
     }
 

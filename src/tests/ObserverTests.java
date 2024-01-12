@@ -1,20 +1,16 @@
 package tests;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import static org.junit.jupiter.api.Assertions.*;
+
+import exceptions.*;
 import models.ConcreteObserver;
 import models.Controller;
 
 import java.util.List;
 import java.util.function.Function;
-
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class ObserverTests {
@@ -36,7 +32,9 @@ public class ObserverTests {
 
     @AfterAll
     public void closing() {
-        controller.getES().shutdown();
+        for(int i = 0; i < controller.getNInvokers(); i++) {
+            controller.getInvokers()[i].getES().shutdown();
+        }
     }
 
     @Test

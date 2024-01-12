@@ -1,54 +1,180 @@
 package models;
 
-import java.util.concurrent.Semaphore;
-import java.util.function.Function;
+import java.util.concurrent.*;
+
+import exceptions.NotEnoughMemory;
+import exceptions.PolicyNotDetected;
 
 public class Invoker {
     private float availableMem;
     private int execFuncs;
-    private Semaphore sem;
     private Observer observer;
+    private final ExecutorService executorService;
+    private final Object memoryLock = new Object();
 
 
+
+    /**
+     * Constructor for Invoker
+     * @param mem memory of the invoker in MB
+     */
     public Invoker(float mem) {
         availableMem = mem;
         execFuncs = 0;
-        sem = new Semaphore(1);
+        executorService = Executors.newCachedThreadPool();
     }
 
+    /**
+     * Getter for the number of functions executed
+     * @return number of executed functions in the invoker
+     */
     public int getExecFuncs() {
-        return execFuncs;
+        synchronized (memoryLock) {
+            return execFuncs;
+        }
     }
 
+    /**
+     * Increments the number of functions executed
+     */
+    public void addExecFunc() {
+        synchronized (memoryLock) {
+            execFuncs++;
+        }
+    }
+
+    /**
+     * Getter for the available memory of the invoker (in the moment that is called)
+     * @return available memory of the invoker in MB
+     */
     public float getAvailableMem() {
-        return availableMem;
+        synchronized (memoryLock) {
+            return availableMem;
+        }
     }
 
-    public Semaphore getSem() {
-        return sem;
+    /**
+     * Acquires memory for the invoker
+     * @param mem memory to acquire in MB
+     * @throws NotEnoughMemory
+     */
+    public void acquireMemory(float mem) throws NotEnoughMemory {
+        synchronized (memoryLock) {
+            availableMem -= mem;
+        }
     }
 
+    /**
+     * Releases memory for the invoker
+     * @param mem memory to release in MB
+     * @throws NotEnoughMemory
+     */
+    public void releaseMemory(float mem) throws NotEnoughMemory {
+        synchronized (memoryLock) {
+            availableMem += mem;
+        }
+    }
+
+    /**
+     * Getter for the observer
+     * @return observer
+     */
     public Observer getObserver() {
         return observer;
     }
 
-    public <T, R> R runFunction(Action<T, R> action, T funcParam) throws InterruptedException {
-        long startTime, endTime, executionTime;
-        availableMem -= action.getActionSizeMB(); // treiem mem disponible de l'Invoker
-        Function<T, R> function = (Function<T, R>) action.getFunction(); // obtenim la funcio a invocar
-        startTime = System.currentTimeMillis();
-        R result = function.apply(funcParam); // passem els parametres a la funcio a invocar
-        endTime = System.currentTimeMillis();
-        executionTime = endTime - startTime;
-        availableMem += action.getActionSizeMB(); // tornem mem disponible de l'Invoker
-        execFuncs++; // augmentem el comptador de funcions executades per l'Invoker
+    /**
+     * Getter for the ExecutorService
+     * @return ExecutorService
+     */
+    public ExecutorService getES() {
+        return executorService;
+    }
 
-        if(observer != null) {
-            MetricData metricData = new MetricData((int) executionTime, this, action.getActionSizeMB());
-            notifyObserver(metricData);
+    /**
+     * Runs a function in the invoker and registers the time taken in case the invoker has observers
+     * @param <T> type of the parameter
+     * @param <R> type of the result
+     * @param action Action to be executed
+     * @param funcParam Parameter of the action
+     * @return The result of the function
+     * @throws InterruptedException
+     * @throws NotEnoughMemory
+     */
+    public <T, R> R runFunction(Action<T, R> action, T funcParam) throws InterruptedException, NotEnoughMemory {
+            long startTime, endTime, executionTime;
+            startTime = System.currentTimeMillis();
+            R result = action.run(funcParam, this); // passem els parametres a la funcio a invocar
+            endTime = System.currentTimeMillis();
+            executionTime = endTime - startTime;
+
+            if(observer != null) {
+                MetricData metricData = new MetricData((int) executionTime, this, action.getActionSizeMB());
+                notifyObserver(metricData);
+            }
+            
+            return result;
+    }
+
+    /**
+     * With the specific policy Manager of the Controller, selects the invoker/s to execute the function/s
+     * @param <T> type of the parameter
+     * @param <R> type of the result
+     * @param cont Controller
+     * @param action Action to be executed
+     * @param actionParam Parameter of the action
+     * @return The result of the function/s
+     * @throws NotEnoughMemory
+     * @throws PolicyNotDetected
+     * @throws InterruptedException
+     */
+    public <T, R> R invoke(Controller cont, Action<T, R> action, T actionParam) throws NotEnoughMemory, PolicyNotDetected, InterruptedException {  //"public <T, R> R ..." fa mètode genèric
+        synchronized (memoryLock) {
+            PolicyManager pm = cont.getPolicyManager();
+            return pm.selectInvokerWithPolicy(cont, action, actionParam, false);
         }
-        
-        return result;
+    }
+
+    /**
+     * With the specific policy Manager of the Controller, selects the invoker/s to execute the function/s asynchronously
+     * @param <T> type of the parameter
+     * @param <R> type of the result
+     * @param cont Controller
+     * @param action Action to be executed
+     * @param actionParam Parameter of the action
+     * @return The result of the function/s (Future)
+     * @throws NotEnoughMemory
+     * @throws PolicyNotDetected
+     */
+    public <T, R> Future<R> invoke_async(Controller cont, Action<T, R> action, T actionParam) throws NotEnoughMemory, PolicyNotDetected {
+        return executorService.submit(() -> {
+            try {
+                PolicyManager pm = cont.getPolicyManager();
+                return pm.selectInvokerWithPolicy(cont, action, actionParam, true);
+            } catch (NotEnoughMemory e) {
+                e.printStackTrace();
+                throw new RuntimeException("Not enough Memory", e);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Interruption emergency", e);
+            }
+        });
+    }
+
+    /**
+     * Assigns an observer to the invoker
+     * @param observer Observer to be added
+     */
+    public void addObserver(Observer observer) {
+        this.observer = observer;
+    }
+
+    /**
+     * Notifies the observer with the metric data
+     * @param metricData Metric data to be sent to the observer
+     */
+    private void notifyObserver(MetricData metricData) {
+        observer.updateMetrics(metricData);
     }
 
      // Método para registrar observadores
