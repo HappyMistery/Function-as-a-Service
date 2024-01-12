@@ -3,12 +3,14 @@ package models;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Pattern;
 
 public class MapReduce {
 
     private final int parts;
 
+    /**
+     * Creates a new MapReduce object that will divide the texts in 5 parts (5 threads).
+     */
     public MapReduce() {
         parts = 5;
         executorService = Executors.newFixedThreadPool(parts);
@@ -16,11 +18,9 @@ public class MapReduce {
 
     private ExecutorService executorService;
     /**
-     * Comptador de paraules diferenciant entre aquestes mitjançant un enfocament Mapreduce.
-     *
-     * @param text
-     * @param parts
-     * @return
+     * Counts the number of times each word appears in a text using a MapReduce approach.
+     * @param text The text to count the words from.
+     * @return A map containing the words as keys and the number of times they appear as values.
      */
     public Map<String, Integer> wordCount(String text) {
     List<Future<Map<String, Integer>>> futures = new ArrayList<>();
@@ -54,11 +54,9 @@ public class MapReduce {
 
 
     /**
-     * Comptador de paraules totals d'un text amb enfocament Mapreduce.
-     *
-     * @param text
-     * @param parts
-     * @return
+     * Counts the total number of words in a text using a MapReduce approach.
+     * @param text The text to count the words from.
+     * @return A map containing the total number of words.
      */
     public Map<String,Integer> countWords(String text) {
         List<List<String>> partitions = makePartitions(text);
@@ -91,11 +89,10 @@ public class MapReduce {
     }
 
     /**
-     * Combina dos mapes
-     *
-     * @param map1 El primer mapa a combinar.
-     * @param map2 El segundo mapa a combinar.
-     * @return Un nuevo mapa resultante de la combinación de map1 y map2.
+     * Merges two maps by summing the values of the keys that are present in both maps.
+     * @param map1 The first map.
+     * @param map2 The second map.
+     * @return A map containing the merged values.
      */
     public Map<String, Integer> mergeMaps(Map<String, Integer> map1, Map<String, Integer> map2) {
         Map<String, Integer> result = new HashMap<>(map1);
@@ -108,11 +105,9 @@ public class MapReduce {
     }
 
     /**
-     * Divide un texto en partes iguales, cada una destinada a ser procesada por un hilo.
-     *
-     * @param text El texto a dividir.
-     * @param threads El número de partes en las que dividir el texto.
-     * @return Una lista de listas de palabras, donde cada lista interna representa una parte del texto.
+     * Divides the text in 5 parts (5 threads).
+     * @param text The text to divide.
+     * @return A list containing the 5 parts of the text.
      */
     private List<List<String>> makePartitions(String text){
         List<String> total = Arrays.stream(text.replaceAll("[^A-Za-z]+", " ")

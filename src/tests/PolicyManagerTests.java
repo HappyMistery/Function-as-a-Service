@@ -1,26 +1,21 @@
 package tests;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
+
+import exceptions.*;
 import models.Controller;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class PolicyManagerTests {
@@ -126,16 +121,6 @@ public class PolicyManagerTests {
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res1.get());
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res2.get());
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res3.get());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
         
         //funcions s'han repartit uniformement entre els 4 invokers
         assertEquals(3, controller.getInvokers()[0].getExecFuncs());
@@ -205,7 +190,7 @@ public class PolicyManagerTests {
 
     @Test
     public void asyncGreedyGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        List<Integer> input = Arrays.asList(2, 2);
+        List<Integer> input = Arrays.asList(1, 1);
         Future<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
@@ -216,16 +201,6 @@ public class PolicyManagerTests {
         assertEquals(Arrays.asList("Done!", "Done!"), res1.get());
         assertEquals(Arrays.asList("Done!", "Done!"), res2.get());
         assertEquals(Arrays.asList("Done!", "Done!"), res3.get());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
         
         //funcions s'han repartit uniformement entre els 4 invokers
         assertEquals(6, controller.getInvokers()[0].getExecFuncs());
@@ -238,7 +213,7 @@ public class PolicyManagerTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
         
         long endTime = System.currentTimeMillis();
-        assertEquals(4, (endTime - startTime) / 1000);
+        assertEquals(2, (endTime - startTime) / 1000);
     }
 
     
@@ -328,16 +303,6 @@ public class PolicyManagerTests {
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res1.get());
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res2.get());
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!", "Done!"), res3.get());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
         
         //funcions s'han repartit uniformement entre els 4 invokers
         assertEquals(9, controller.getInvokers()[0].getExecFuncs());
@@ -453,7 +418,7 @@ public class PolicyManagerTests {
 
     @Test
     public void asyncBigGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        List<Integer> input = Arrays.asList(2, 2, 2, 2);
+        List<Integer> input = Arrays.asList(1, 1, 1, 1);
         Future<String> res1, res2, res3;
 
         long startTime = System.currentTimeMillis();
@@ -464,16 +429,6 @@ public class PolicyManagerTests {
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res1.get());
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res2.get());
         assertEquals(Arrays.asList("Done!", "Done!", "Done!", "Done!"), res3.get());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getExecFuncs());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getExecFuncs());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getExecFuncs());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getExecFuncs());
-
-        System.out.println("inv 0: " + controller.getInvokers()[0].getAvailableMem());
-        System.out.println("inv 1: " + controller.getInvokers()[1].getAvailableMem());
-        System.out.println("inv 2: " + controller.getInvokers()[2].getAvailableMem());
-        System.out.println("inv 3: " + controller.getInvokers()[3].getAvailableMem());
         
         //funcions s'han repartit uniformement entre els 4 invokers
          assertEquals(12, controller.getInvokers()[0].getExecFuncs());
@@ -486,6 +441,6 @@ public class PolicyManagerTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
         
         long endTime = System.currentTimeMillis();
-        assertEquals(8, (endTime - startTime) / 1000);
+        assertEquals(4, (endTime - startTime) / 1000);
     }
 }

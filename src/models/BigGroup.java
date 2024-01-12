@@ -3,18 +3,17 @@ package models;
 import exceptions.NotEnoughMemory;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Semaphore;
 
 public class BigGroup extends PolicyManager {
 
-/**
-     * executes the functions across the invokers with the BigGroup policy
-     * @param <T>
-     * @param <R>
-     * @param cont
-     * @param action
-     * @param actionParam
-     * @param isAsync
+    /**
+     * executes the functions across the invokers with the BigGroup policy (tries to fill the first invoker with a group of functions before passing to the next one)
+     * @param <T> type of the parameter
+     * @param <R> type of the result
+     * @param cont Controller
+     * @param action Action to be executed
+     * @param actionParam Parameter of the action
+     * @param isAsync Boolean that indicates if the execution is asynchronous
      * @return The list of results of the functions
      * @throws NotEnoughMemory
      * @throws InterruptedException

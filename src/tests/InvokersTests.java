@@ -1,17 +1,11 @@
 package tests;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import exceptions.*;
 import models.Controller;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;

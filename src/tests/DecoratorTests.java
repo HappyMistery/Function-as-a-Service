@@ -2,14 +2,10 @@ package tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import exceptions.*;
 
 import java.util.function.Function;
 import models.*;
@@ -58,7 +54,7 @@ public class DecoratorTests {
 
     @Test
     public void testSleepTime() throws InterruptedException, NotEnoughMemory, PolicyNotDetected {
-        String res = timerDecorator.invoke("sleepAction", 2, 1);
+        String res = timerDecorator.invoke("sleepAction", 1, 1);
         assertEquals("Done!", res);
     }
 

@@ -1,11 +1,9 @@
 package tests;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import exceptions.*;
 import models.Controller;
 
 import java.util.concurrent.Future;
@@ -15,8 +13,7 @@ import java.util.List;
 import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestInstance.Lifecycle;
+
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class MultiThreadingTests {
@@ -82,7 +79,7 @@ public class MultiThreadingTests {
 
     @Test
     public void SleepAsyncGroup() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        List<Integer> segons = Arrays.asList(2, 2, 2, 2);
+        List<Integer> segons = Arrays.asList(1, 1, 1, 1);
         Future<String> res1, res2, res3, res4;
     
         long startTime = System.currentTimeMillis();
@@ -101,6 +98,6 @@ public class MultiThreadingTests {
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[3].getAvailableMem());
 
         long endTime = System.currentTimeMillis();
-        assertEquals(8, (endTime - startTime) / 1000);
+        assertEquals(4, (endTime - startTime) / 1000);
     }
 }

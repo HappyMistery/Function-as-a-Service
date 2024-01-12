@@ -1,20 +1,19 @@
 package models;
 
 import java.util.List;
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import exceptions.*;
 
 public abstract class PolicyManager {
 
     /**
-     * selects the invoker to execute the functiondepending on the policy selected
-     * @param <T>
-     * @param <R>
-     * @param cont
-     * @param action
-     * @param actionParam
-     * @param policy
-     * @param isAsync
+     * selects the invoker/s to execute the function/s depending on the policy selected
+     * @param <T> type of the parameter of the function
+     * @param <R> type of the result of the function
+     * @param cont Controller
+     * @param action Action to be executed
+     * @param actionParam Parameter of the action
+     * @param policy Policy to be applied
+     * @param isAsync Boolean that indicates if the execution is asynchronous
      * @return The list of results of the functions
      * @throws NotEnoughMemory
      * @throws PolicyNotDetected
@@ -25,15 +24,15 @@ public abstract class PolicyManager {
 
     /**
      * checks if there is enough memory across the invokers to execute the functions in groups of groupSize
-     * @param <T>
-     * @param <R>
-     * @param cont
-     * @param action
-     * @param actionParam
-     * @param nExecFuncs
-     * @param groupSize
-     * @param policy
-     * @param isAsync
+     * @param <T> type of the parameter
+     * @param <R> type of the result
+     * @param cont Controller
+     * @param action Action to be executed
+     * @param actionParam Parameter of the action
+     * @param nExecFuncs Number of functions already executed
+     * @param groupSize Size of the group of functions to be executed
+     * @param policy Policy to be applied
+     * @param isAsync Boolean that indicates if the execution is asynchronous
      * @return A list of all the invokers that can execute the functions
      * @throws NotEnoughMemory
      * @throws InterruptedException
@@ -66,12 +65,12 @@ public abstract class PolicyManager {
 
     /**
      * executes a single function on the first available invoker with enough memory
-     * @param <T>
-     * @param <R>
-     * @param cont
-     * @param action
-     * @param actionParam
-     * @param isAsync
+     * @param <T> type of the parameter
+     * @param <R> type of the result
+     * @param cont Controller
+     * @param action Action to be executed
+     * @param actionParam Parameter of the action
+     * @param isAsync Boolean that indicates if the execution is asynchronous
      * @return The single result of the function
      * @throws NotEnoughMemory
      * @throws InterruptedException

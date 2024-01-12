@@ -1,16 +1,12 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
-import exceptions.NotEnoughMemory;
-import exceptions.PolicyNotDetected;
+import exceptions.*;
 import models.ConcreteObserver;
 import models.Controller;
 import models.MapReduce;
@@ -60,7 +56,6 @@ public class Main {
 
             Future<List<Map<String, Integer>>> resultatsWC = controller.invoke_async("wordCount", texts, 1);
             Future<List<Map<String, Integer>>> resultatsCW = controller.invoke_async("countWords", texts, 1);
-            //System.out.println(resultatsWC.get());
             for(Map<String, Integer> map : resultatsWC.get()){
                 finalWC =  cmpt.mergeMaps(finalWC, map);
             }
