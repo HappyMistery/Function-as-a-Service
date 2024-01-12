@@ -110,7 +110,7 @@ public class MapReduce {
      * @return A list containing the 5 parts of the text.
      */
     private List<List<String>> makePartitions(String text){
-        List<String> total = Arrays.stream(text.replaceAll("[^A-Za-z]+", " ")
+        List<String> total = Arrays.stream(text.replaceAll("[^A-Za-z]", " ")
             .split("\\s+"))
             .filter(word -> !word.isEmpty())
             .toList();

@@ -11,8 +11,8 @@ import java.util.concurrent.*;
 public class Controller {
     private int nInvokers;
     private int totalSizeMB;
-    private Map<String, Action> actions;
-    private Invoker[] invokers;
+    protected Map<String, Action> actions;
+    protected Invoker[] invokers;
     private List<MetricData> metricsList = new ArrayList<>();
     private PolicyManager policyManager;
 

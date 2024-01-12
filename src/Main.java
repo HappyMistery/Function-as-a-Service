@@ -10,14 +10,20 @@ import exceptions.*;
 import models.ConcreteObserver;
 import models.Controller;
 import models.MapReduce;
+import models.TimerDecorator;
 
 public class Main {
     public static void main(String[] args) throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        Controller controller = new Controller(10, 1024);
-        ConcreteObserver observer = new ConcreteObserver();
+        Controller cont = new Controller(10, 1024);
+        TimerDecorator controller = new TimerDecorator(cont);
+        Controller cont2 = new Controller(10, 1024);
+        TimerDecorator controller2 = new TimerDecorator(cont2);
 
         for(int i = 0; i < controller.getNInvokers(); i++) {
+            ConcreteObserver observer = new ConcreteObserver();
             controller.getInvokers()[i].addObserver(observer);
+            ConcreteObserver observer2 = new ConcreteObserver();
+            controller2.getInvokers()[i].addObserver(observer2);
         }
         
         try {
@@ -29,7 +35,7 @@ public class Main {
             Map<String, Integer> finalCW = new HashMap<String, Integer>();
 
             controller.registerAction("wordCount", wordCount, 1);
-            controller.registerAction("countWords", countWords, 1);
+            controller2.registerAction("countWords", countWords, 1);
 
             List<String> texts = new ArrayList<>();
 
@@ -55,12 +61,12 @@ public class Main {
             texts.add(txt9);
 
             Future<List<Map<String, Integer>>> resultatsWC = controller.invoke_async("wordCount", texts, 1);
-            Future<List<Map<String, Integer>>> resultatsCW = controller.invoke_async("countWords", texts, 1);
+            Future<List<Map<String, Integer>>> resultatsCW = controller2.invoke_async("countWords", texts, 1);
+            
             for(Map<String, Integer> map : resultatsWC.get()){
                 finalWC =  cmpt.mergeMaps(finalWC, map);
             }
 
-            System.out.println(resultatsCW.get());
             for(Map<String, Integer> map : resultatsCW.get()){
                 finalCW = cmpt.mergeMaps(finalCW, map);
             }
@@ -72,12 +78,15 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        //controller.displayExecutionTimeStats();
-        //controller.displayExecutionTimeByInvoker(observer);
+        controller.printTimeStats();
+        controller.printInvokerExecutionTime();
+        controller2.printTimeStats();
+        controller2.printInvokerExecutionTime();
 
         
         for(int i = 0; i < controller.getNInvokers(); i++) {
             controller.getInvokers()[i].getES().shutdown();
+            controller2.getInvokers()[i].getES().shutdown();
         }
     }
 
