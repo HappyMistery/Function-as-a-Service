@@ -135,7 +135,7 @@ public class Controller {
 
     /**
      * Calculates the maximum time taken to execute an action by an invoker
-     * @return time in seconds
+     * @return time in miliseconds
      */
     public int calculateMaxTimeAction() {
         return Stream.of(invokers).map(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).max(Comparator.naturalOrder()).orElse(0);
@@ -143,7 +143,7 @@ public class Controller {
 
     /**
      * Calculates the minimum time taken to execute an action by an invoker
-     * @return time in seconds
+     * @return time in miliseconds
      */
     public int calculateMinTimeAction() {
         return Stream.of(invokers).map(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).min(Comparator.naturalOrder()).orElse(0);
@@ -151,7 +151,7 @@ public class Controller {
 
     /**
      * Calculates the mean time taken to execute an action by an invoker
-     * @return time in seconds
+     * @return time in miliseconds
      */
     public float calculateMeanTimeAction() {
         return (float) Stream.of(invokers).mapToDouble(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).average().orElse(0);
@@ -159,7 +159,7 @@ public class Controller {
 
     /**
      * Calculates the total time taken to execute all actions by all invokers
-     * @return time in seconds
+     * @return time in miliseconds
      */
     public int calculateAggregateTimeAction() {
         return Stream.of(invokers).mapToInt(invoker -> ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime()).sum();
@@ -183,8 +183,8 @@ public class Controller {
         for(Action<T, R> action : actions.values()) {
             System.out.println("Action: " + action.getActionName() +
                     ", Max Time: " + this.calculateMaxTimeAction() +
-                    ", Min Time: " + this.calculateMinTimeAction() +
-                    ", Avg Time: " + this.calculateMeanTimeAction());
+                    " ms, Min Time: " + this.calculateMinTimeAction() +
+                    " ms, Avg Time: " + this.calculateMeanTimeAction() + " ms");
         }
     }
     
@@ -197,7 +197,7 @@ public class Controller {
         
         Arrays.asList(invokers).stream().forEach(invoker -> {
             System.out.println("Invoker: " + invoker +
-                    ", Total Execution Time: " + ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime());
+                    ", Total Execution Time: " + ((ConcreteObserver) invoker.getObserver()).getReceivedMetricData().getExecutionTime() + " ms");
         });
     }
 }

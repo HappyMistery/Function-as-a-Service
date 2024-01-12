@@ -79,7 +79,7 @@ public class TimerDecorator extends Controller {
 
         Thread threadInvoke = new Thread(() -> {
             try {
-                R result = controller.invoke(actionName, actionParam, controller.getNInvokers());
+                R result = controller.invoke(actionName, actionParam, policy);
                 resultContainer.set(result);
             } catch (Exception e) {
                 e.printStackTrace();

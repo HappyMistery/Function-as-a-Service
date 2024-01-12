@@ -1,5 +1,7 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -14,10 +16,8 @@ import models.TimerDecorator;
 
 public class Main {
     public static void main(String[] args) throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-        Controller cont = new Controller(10, 1024);
-        TimerDecorator controller = new TimerDecorator(cont);
-        Controller cont2 = new Controller(10, 1024);
-        TimerDecorator controller2 = new TimerDecorator(cont2);
+        Controller controller = new Controller(10, 1024);
+        Controller controller2 = new Controller(10, 1024);
 
         for(int i = 0; i < controller.getNInvokers(); i++) {
             ConcreteObserver observer = new ConcreteObserver();
@@ -60,6 +60,24 @@ public class Main {
             String txt9 = readFile("src/fitxers/Hamlet.txt");
             texts.add(txt9);
 
+            /*
+            List<Map<String, Integer>> resultatsWC = controller.invoke("wordCount", texts, 1);
+            List<Map<String, Integer>> resultatsCW = controller2.invoke("countWords", texts, 1);
+            
+            for(Map<String, Integer> map : resultatsWC){
+                finalWC =  cmpt.mergeMaps(finalWC, map);
+            }
+
+            for(Map<String, Integer> map : resultatsCW){
+                finalCW = cmpt.mergeMaps(finalCW, map);
+            }
+            List<Map<String, Integer>> mapsList = new ArrayList<>();
+            mapsList.add(finalCW);
+            mapsList.add(finalWC);
+            writeMapToFile(mapsList, "src/fitxers/ResultsMapReduce.txt");
+            //*/
+            
+            ///* 
             Future<List<Map<String, Integer>>> resultatsWC = controller.invoke_async("wordCount", texts, 1);
             Future<List<Map<String, Integer>>> resultatsCW = controller2.invoke_async("countWords", texts, 1);
             
@@ -70,10 +88,11 @@ public class Main {
             for(Map<String, Integer> map : resultatsCW.get()){
                 finalCW = cmpt.mergeMaps(finalCW, map);
             }
-            
-            System.out.println(finalWC);
-
-            System.out.println(finalCW);
+            List<Map<String, Integer>> mapsList = new ArrayList<>();
+            mapsList.add(finalCW);
+            mapsList.add(finalWC);
+            writeMapToFile(mapsList, "src/fitxers/ResultsMapReduce.txt");
+            //*/
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -104,5 +123,20 @@ public class Main {
             return stringBuilder.toString();
         }
         
+        public static void writeMapToFile(List<Map<String, Integer>> Lmap, String filePath) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+                writer.write("RESULTATS MAP REDUCE\n");
+                writer.append("\n\n");
+                for (Map<String, Integer> map : Lmap) {
+                    for (Map.Entry<String, Integer> entry : map.entrySet()) {
+                        writer.append(entry.getKey() + "= " + entry.getValue());
+                        writer.newLine();
+                    }
+                    writer.append("\n\n");
+                }
+            } catch (IOException e) {
+                e.printStackTrace(); // Handle the exception according to your needs
+            }
+        }
 }
 
