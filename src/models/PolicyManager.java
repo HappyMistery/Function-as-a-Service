@@ -85,7 +85,6 @@ public abstract class PolicyManager {
         }
 
         Invoker inv = cont.getInvokers()[j]; // guardem l'Invoker que executarà la funcio
-        if(isAsync) inv.getSem().acquire();
         R resFinal = (R) inv.runFunction(action, actionParam);
         return resFinal;
     }

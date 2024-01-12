@@ -30,7 +30,7 @@ public class Controller {
         for(int i = 0; i < nInvokers; i++) {
             invokers[i] = new Invoker(totalSizeMB/nInvokers);   //Inicialitzem cada Invoker de l'array
         }
-
+    }
 
     /**
      * Getter for number of invokers
@@ -54,10 +54,6 @@ public class Controller {
      */
     public int getTotalSizeMB() {
         return totalSizeMB;
-    }
-
-    public ExecutorService getES() {
-        return executorService;
     }
 
     /**

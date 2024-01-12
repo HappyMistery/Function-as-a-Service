@@ -176,14 +176,4 @@ public class Invoker {
     private void notifyObserver(MetricData metricData) {
         observer.updateMetrics(metricData);
     }
-
-     // Método para registrar observadores
-    public void addObserver(Observer observer) {
-        this.observer = observer;
-    }
-
-     // Método para notificar cambios en las métricas
-    private void notifyObserver(MetricData metricData) {
-        observer.updateMetrics(metricData);
-    }
 }
