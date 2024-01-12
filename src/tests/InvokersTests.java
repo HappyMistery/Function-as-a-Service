@@ -183,7 +183,6 @@ public class InvokersTests {
 
      @Test
     public void funcSoloAsync() throws NotEnoughMemory, PolicyNotDetected, InterruptedException, ExecutionException {
-
         Future<Integer> res = controller.invoke_async("addAction", Map.of("x", 6, "y", 2), 1);
         assertEquals(8, res.get());
         assertEquals(controller.getTotalSizeMB()/controller.getNInvokers(), controller.getInvokers()[0].getAvailableMem());

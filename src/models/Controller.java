@@ -16,7 +16,6 @@ public class Controller {
     private List<MetricData> metricsList = new ArrayList<>();
     private PolicyManager policyManager;
 
-
      
     /**
      * Constructor for Controller
@@ -31,7 +30,6 @@ public class Controller {
         for(int i = 0; i < nInvokers; i++) {
             invokers[i] = new Invoker(totalSizeMB/nInvokers);   //Inicialitzem cada Invoker de l'array
         }
-    }
 
 
     /**
@@ -56,6 +54,10 @@ public class Controller {
      */
     public int getTotalSizeMB() {
         return totalSizeMB;
+    }
+
+    public ExecutorService getES() {
+        return executorService;
     }
 
     /**

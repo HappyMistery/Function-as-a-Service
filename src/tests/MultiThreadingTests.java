@@ -14,7 +14,6 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 @TestInstance(Lifecycle.PER_CLASS)
 public class MultiThreadingTests {
 

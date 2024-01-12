@@ -55,7 +55,6 @@ public class Action<T, R> {
     public int getActionSizeMB() {
         return actionSizeMB;
     }
-
     /**
      * Runs the function with the given parameter
      * @param funcParam parameter for the function
@@ -70,5 +69,4 @@ public class Action<T, R> {
         invoker.addExecFunc();
         return result;
     }
-
 }

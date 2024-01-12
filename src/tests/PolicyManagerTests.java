@@ -16,7 +16,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
-
 @TestInstance(Lifecycle.PER_CLASS)
 public class PolicyManagerTests {
 
@@ -444,3 +443,4 @@ public class PolicyManagerTests {
         assertEquals(4, (endTime - startTime) / 1000);
     }
 }
+
